@@ -4,37 +4,54 @@ import com.google.gson.Gson;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RegionManager {
-    private Region[] regions;
-    // TODO: change to map. key region id, value region
-
-
+    private Map<Integer, Region> regionMap;
+    private RegionsInfo regionsInfo;
     private ExecutorService executor;
 
-    public RegionManager(Region[] regions) {
-        this.regions = regions;
-        executor = Executors.newFixedThreadPool(regions.length);
+    public RegionManager(Map<Integer, Region> regionMap, RegionsInfo regionsInfo) {
+        this.regionMap = regionMap;
+        this.regionsInfo = regionsInfo;
+        executor = Executors.newFixedThreadPool(regionMap.size());
     }
 
-    public static Region[] readRegions(String file) {
+    public static Map<Integer, Region> readRegions(String file) {
         Gson gson = new Gson();
-        Region[] regions = null;
+        Map<Integer, Region> regionMap = new HashMap<>();
 
         try (FileReader reader = new FileReader(file)) {
-            regions = gson.fromJson(reader, Region[].class); // read from JSON file
-
+            Region[] regions = gson.fromJson(reader, Region[].class);
+            if (regions != null) {
+                for (Region region : regions) {
+                    regionMap.put(region.getRegionID(), region);
+                }
+            } else {
+                System.err.println("Failed to parse regions from JSON file.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return regions;
+        return regionMap;
+    }
+    public static RegionsInfo readRegionsInfo(String file) {
+        Gson gson = new Gson();
+
+        try (FileReader reader = new FileReader(file)) {
+            return gson.fromJson(reader, RegionsInfo.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void start() {
 
-        for (Region region : regions) {
+        for (Region region : regionMap.values()) {
             executor.execute(new RegionThread(region));
         }
 
@@ -44,22 +61,31 @@ public class RegionManager {
         executor.shutdown();
     }
 
+    public int getTotalDataSize() {
+        return regionsInfo.getTotalDataSize();
+    }
+    public int getNumOfRegions() {
+        return regionsInfo.getNumOfRegions();
+    }
+    public Region getRegion(int regionID) {
+        return regionMap.get(regionID);
+    }
     // TODO: methods: get region status methods: query capacity, query esitimation time , etc
 
-
-
-
-
-
     public static void main(String[] args) {
+        // read regions' config file and run regions multi-threaded.
 
-        String file = "regions.json";
-        Region[] regions = RegionManager.readRegions(file);
+        String regionsFile = "regions.json";
+        String regionsInfoFile = "regionsInfo.json";
+        Map<Integer, Region> regionMap = readRegions(regionsFile);
+        RegionsInfo regionsInfo = readRegionsInfo(regionsInfoFile);
 
-        RegionManager rm = new RegionManager(regions);
+        RegionManager rm = new RegionManager(regionMap, regionsInfo);
+        System.out.println("Total Data Size: " + rm.getTotalDataSize());
+        System.out.println("Number of Regions: " + rm.getNumOfRegions());
+        System.out.println("Region 0 Info: " + rm.getRegion(0));
 
         rm.start();
-
         rm.shutdown();
 
     }

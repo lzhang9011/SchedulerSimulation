@@ -1,30 +1,19 @@
 package org.example;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Region {
     private int numOfCPUs;
     private int regionID;
-    private Map<Integer, Integer> connectivityMap;
-    private double dataDistribution; // Represented in percentage (0% - 100%)
-    // TODO: change to list/map of partiions
+    private List<Map<String, Double>> dataDistributionList;
 
-
-
-    // TODO: queue of parition / task
-
-    // TODO: methods like query data distribution
-
-
-    public Region(int numOfCPUs, int regionID, double dataDistribution, Map<Integer, Integer> connectivityMap) {
+    public Region(int numOfCPUs, int regionID) {
         this.numOfCPUs = numOfCPUs;
         this.regionID = regionID;
-        this.dataDistribution = dataDistribution;
-        this.connectivityMap = connectivityMap;
-    }
-
-    public void addConnection(int connectedRegionID, int bandwidth) {
-        connectivityMap.put(connectedRegionID, bandwidth);
+        this.dataDistributionList = new ArrayList<>();
     }
 
     public int getNumOfCPUs() {
@@ -43,16 +32,12 @@ public class Region {
         this.regionID = regionID;
     }
 
-    public double getDataDistribution() {
-        return dataDistribution;
+    public List<Map<String, Double>> getDataDistributionList() {
+        return dataDistributionList;
     }
 
-    public void setDataDistribution(double dataDistribution) {
-        this.dataDistribution = dataDistribution;
-    }
-
-    public Map<Integer, Integer> getConnectivityMap() {
-        return connectivityMap;
+    public void setDataDistributionList(List<Map<String, Double>> dataDistributionList) {
+        this.dataDistributionList = dataDistributionList;
     }
 
     @Override
@@ -60,8 +45,7 @@ public class Region {
         return "Region{" +
                 "numOfCPUs=" + numOfCPUs +
                 ", regionID=" + regionID +
-                ", dataDistribution=" + dataDistribution +
+                ", dataDistributionList=" + dataDistributionList +
                 '}';
     }
 }
-

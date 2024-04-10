@@ -2,161 +2,117 @@
   {
     "numOfCPUs": 4,
     "regionID": 0,
-    "connectivityMap": {
-      "1": 807,
-      "2": 300,
-      "3": 806,
-      "4": 42,
-      "5": 418,
-      "6": 254,
-      "7": 529,
-      "8": 440,
-      "9": 446
-    },
-    "dataDistribution": 64.57
+    "dataDistribution": {
+      "Region8": 0.14,
+      "Region7": 15.72,
+      "Region6": 68.26,
+      "Region3": 0.14,
+      "Region2": 15.72,
+      "key": "Region6"
+    }
   },
   {
-    "numOfCPUs": 2,
+    "numOfCPUs": 1,
     "regionID": 1,
-    "connectivityMap": {
-      "0": 335,
-      "2": 503,
-      "3": 842,
-      "4": 478,
-      "5": 735,
-      "6": 263,
-      "7": 88,
-      "8": 31,
-      "9": 393
-    },
-    "dataDistribution": 21.73
+    "dataDistribution": {
+      "Region9": 68.26,
+      "Region8": 15.72,
+      "Region7": 15.72,
+      "Region1": 0.14,
+      "Region0": 0.14,
+      "key": "Region9"
+    }
   },
   {
-    "numOfCPUs": 8,
+    "numOfCPUs": 4,
     "regionID": 2,
-    "connectivityMap": {
-      "0": 297,
-      "1": 86,
-      "3": 154,
-      "4": 999,
-      "5": 679,
-      "6": 886,
-      "7": 238,
-      "8": 345,
-      "9": 3
-    },
-    "dataDistribution": 0.22
+    "dataDistribution": {
+      "Region9": 68.26,
+      "Region5": 15.72,
+      "Region1": 15.72,
+      "key": "Region9"
+    }
   },
   {
-    "numOfCPUs": 2,
+    "numOfCPUs": 1,
     "regionID": 3,
-    "connectivityMap": {
-      "0": 296,
-      "1": 839,
-      "2": 413,
-      "4": 973,
-      "5": 909,
-      "6": 764,
-      "7": 915,
-      "8": 232,
-      "9": 154
-    },
-    "dataDistribution": 5.8
+    "dataDistribution": {
+      "Region7": 15.72,
+      "Region6": 15.72,
+      "Region1": 68.26,
+      "key": "Region1"
+    }
   },
   {
-    "numOfCPUs": 2,
+    "numOfCPUs": 4,
     "regionID": 4,
-    "connectivityMap": {
-      "0": 546,
-      "1": 536,
-      "2": 170,
-      "3": 693,
-      "5": 75,
-      "6": 823,
-      "7": 216,
-      "8": 289,
-      "9": 460
-    },
-    "dataDistribution": 2.35
+    "dataDistribution": {
+      "Region8": 68.26,
+      "Region4": 15.72,
+      "Region6": 15.72,
+      "Region0": 0.14,
+      "Region3": 0.14,
+      "key": "Region8"
+    }
   },
   {
     "numOfCPUs": 8,
     "regionID": 5,
-    "connectivityMap": {
-      "0": 233,
-      "1": 959,
-      "2": 234,
-      "3": 510,
-      "4": 454,
-      "6": 711,
-      "7": 670,
-      "8": 5,
-      "9": 674
-    },
-    "dataDistribution": 0.8
+    "dataDistribution": {
+      "Region8": 68.26,
+      "Region5": 0.14,
+      "Region6": 15.72,
+      "Region1": 0.14,
+      "Region2": 15.72,
+      "key": "Region8"
+    }
   },
   {
-    "numOfCPUs": 8,
+    "numOfCPUs": 2,
     "regionID": 6,
-    "connectivityMap": {
-      "0": 662,
-      "1": 715,
-      "2": 53,
-      "3": 525,
-      "4": 502,
-      "5": 908,
-      "7": 354,
-      "8": 646,
-      "9": 300
-    },
-    "dataDistribution": 3.9
-  },
-  {
-    "numOfCPUs": 1,
-    "regionID": 7,
-    "connectivityMap": {
-      "0": 885,
-      "1": 968,
-      "2": 418,
-      "3": 835,
-      "4": 672,
-      "5": 866,
-      "6": 76,
-      "8": 550,
-      "9": 982
-    },
-    "dataDistribution": 0.02
+    "dataDistribution": {
+      "Region9": 0.14,
+      "Region10": 68.26,
+      "Region1": 15.72,
+      "Region0": 0.14,
+      "Region2": 15.72,
+      "key": "Region10"
+    }
   },
   {
     "numOfCPUs": 4,
+    "regionID": 7,
+    "dataDistribution": {
+      "Region5": 15.72,
+      "Region7": 15.72,
+      "Region6": 68.26,
+      "Region3": 0.14,
+      "Region2": 0.14,
+      "key": "Region6"
+    }
+  },
+  {
+    "numOfCPUs": 8,
     "regionID": 8,
-    "connectivityMap": {
-      "0": 87,
-      "1": 660,
-      "2": 816,
-      "3": 942,
-      "4": 800,
-      "5": 21,
-      "6": 166,
-      "7": 348,
-      "9": 112
-    },
-    "dataDistribution": 0.54
+    "dataDistribution": {
+      "Region8": 15.72,
+      "Region7": 15.72,
+      "Region1": 0.14,
+      "Region0": 0.14,
+      "Region3": 68.26,
+      "key": "Region3"
+    }
   },
   {
     "numOfCPUs": 2,
     "regionID": 9,
-    "connectivityMap": {
-      "0": 496,
-      "1": 504,
-      "2": 291,
-      "3": 781,
-      "4": 337,
-      "5": 312,
-      "6": 995,
-      "7": 961,
-      "8": 400
-    },
-    "dataDistribution": 0.07
+    "dataDistribution": {
+      "Region8": 15.72,
+      "Region5": 68.26,
+      "Region4": 0.14,
+      "Region6": 0.14,
+      "Region1": 15.72,
+      "key": "Region5"
+    }
   }
 ]
