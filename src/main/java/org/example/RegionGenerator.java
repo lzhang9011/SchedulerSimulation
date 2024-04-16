@@ -17,10 +17,11 @@ public class RegionGenerator {
             int numOfCPUs = getRandomCPUs();
             //generate an empty dataDistributionMap for each region, for now
             Map<String, Double> dataDistributionMap = new HashMap<>();
-            Region region = new Region(numOfCPUs, i, dataDistributionMap);
+            Map<Integer, Integer> connectivityMap = new HashMap<>();
+            Region region = new Region(numOfCPUs, i, dataDistributionMap, connectivityMap);
             regions.add(region);
         }
-
+        // -------------------------------------------------------------------------------------
         // Generate tmp map for each key (X: R0->P3, R7->P2, P8->P1; Y: R5->P2, R9->P2, P1->P1;)
         String[] keys = {"X", "Y", "Z"};
         List<Map<Integer, Double>> tmpMapList = new ArrayList<>();
@@ -48,6 +49,12 @@ public class RegionGenerator {
 
             // Update the region's dataDistributionMap
             region.setDataDistributionMap(dataDistributionMap);
+        }
+        // ----------------------------------------------
+        // generate connectivityMap for each region
+        for (Region region : regions) {
+            Map<Integer, Integer> connectivityMap = generateConnectivityMap(region.getRegionID());
+            region.setConnectivityMap(connectivityMap);
         }
 
         return regions;
@@ -115,7 +122,16 @@ public class RegionGenerator {
 
         return array;
     }
-
+    private static Map<Integer, Integer> generateConnectivityMap(int selfRegionID) {
+        Random random = new Random();
+        Map<Integer, Integer> connectivityMap = new HashMap<>();
+        for (int i = 0; i < 10; i++) { // Assuming 10 regions
+            if (i != selfRegionID) { // Exclude self region
+                connectivityMap.put(i, random.nextInt(401) + 100); // Random integer between 100 and 500
+            }
+        }
+        return connectivityMap;
+    }
 
 
     private static int getRandomCPUs() {

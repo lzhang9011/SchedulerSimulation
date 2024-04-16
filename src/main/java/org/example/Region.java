@@ -9,11 +9,14 @@ public class Region {
     private int numOfCPUs;
     private int regionID;
     private Map<String, Double> dataDistributionMap;
+    private Map<Integer, Integer> connectivityMap;
 
-    public Region(int numOfCPUs, int regionID, Map<String, Double> dataDistributionMap) {
+    public Region(int numOfCPUs, int regionID, Map<String, Double> dataDistributionMap, Map<Integer, Integer> connectivityMap) {
         this.numOfCPUs = numOfCPUs;
         this.regionID = regionID;
         this.dataDistributionMap = dataDistributionMap;
+        this.connectivityMap = connectivityMap;
+
     }
 
     public int getNumOfCPUs() {
@@ -40,14 +43,14 @@ public class Region {
         this.dataDistributionMap = dataDistributionMap;
     }
 
-//    @Override
-//    public String toString() {
-//        return "Region{" +
-//                "numOfCPUs=" + numOfCPUs +
-//                ", regionID=" + regionID +
-//                ", dataDistributionMap=" + dataDistributionMap +
-//                '}';
-//    }
+    public Map<Integer, Integer> getConnectivityMap() {
+        return connectivityMap;
+    }
+    public void setConnectivityMap(Map<Integer, Integer> connectivityMap) {
+        this.connectivityMap = connectivityMap;
+    }
+
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
