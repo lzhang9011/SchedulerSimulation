@@ -1,118 +1,82 @@
 [
   {
-    "numOfCPUs": 4,
+    "numOfCPUs": 1,
     "regionID": 0,
-    "dataDistribution": {
-      "Region8": 0.14,
-      "Region7": 15.72,
-      "Region6": 68.26,
-      "Region3": 0.14,
-      "Region2": 15.72,
-      "key": "Region6"
+    "dataDistributionMap": {
+      "Z": 13.158303307026868
     }
   },
   {
     "numOfCPUs": 1,
     "regionID": 1,
-    "dataDistribution": {
-      "Region9": 68.26,
-      "Region8": 15.72,
-      "Region7": 15.72,
-      "Region1": 0.14,
-      "Region0": 0.14,
-      "key": "Region9"
+    "dataDistributionMap": {
+      "X": 95.18573647759798,
+      "Y": 1.5231711029762836,
+      "Z": 5.121085876807038
     }
   },
   {
     "numOfCPUs": 4,
     "regionID": 2,
-    "dataDistribution": {
-      "Region9": 68.26,
-      "Region5": 15.72,
-      "Region1": 15.72,
-      "key": "Region9"
+    "dataDistributionMap": {
+      "Y": 10.20994666306152,
+      "Z": 18.64574406377532
     }
   },
   {
     "numOfCPUs": 1,
     "regionID": 3,
-    "dataDistribution": {
-      "Region7": 15.72,
-      "Region6": 15.72,
-      "Region1": 68.26,
-      "key": "Region1"
+    "dataDistributionMap": {
+      "X": 0.47832028380702507,
+      "Y": 0.12007025935780964,
+      "Z": 8.878697387054215
     }
   },
   {
-    "numOfCPUs": 4,
+    "numOfCPUs": 8,
     "regionID": 4,
-    "dataDistribution": {
-      "Region8": 68.26,
-      "Region4": 15.72,
-      "Region6": 15.72,
-      "Region0": 0.14,
-      "Region3": 0.14,
-      "key": "Region8"
+    "dataDistributionMap": {
+      "Y": 17.213151763861987,
+      "Z": 0.13558691524147456
     }
   },
   {
     "numOfCPUs": 8,
     "regionID": 5,
-    "dataDistribution": {
-      "Region8": 68.26,
-      "Region5": 0.14,
-      "Region6": 15.72,
-      "Region1": 0.14,
-      "Region2": 15.72,
-      "key": "Region8"
-    }
-  },
-  {
-    "numOfCPUs": 2,
-    "regionID": 6,
-    "dataDistribution": {
-      "Region9": 0.14,
-      "Region10": 68.26,
-      "Region1": 15.72,
-      "Region0": 0.14,
-      "Region2": 15.72,
-      "key": "Region10"
-    }
-  },
-  {
-    "numOfCPUs": 4,
-    "regionID": 7,
-    "dataDistribution": {
-      "Region5": 15.72,
-      "Region7": 15.72,
-      "Region6": 68.26,
-      "Region3": 0.14,
-      "Region2": 0.14,
-      "key": "Region6"
+    "dataDistributionMap": {
+      "Y": 23.89398161220412,
+      "Z": 13.723872419843513
     }
   },
   {
     "numOfCPUs": 8,
-    "regionID": 8,
-    "dataDistribution": {
-      "Region8": 15.72,
-      "Region7": 15.72,
-      "Region1": 0.14,
-      "Region0": 0.14,
-      "Region3": 68.26,
-      "key": "Region3"
+    "regionID": 6,
+    "dataDistributionMap": {
+      "Y": 18.839755966270573
     }
   },
   {
     "numOfCPUs": 2,
+    "regionID": 7,
+    "dataDistributionMap": {
+      "Y": 16.155465869613188,
+      "Z": 26.98179613305344
+    }
+  },
+  {
+    "numOfCPUs": 4,
+    "regionID": 8,
+    "dataDistributionMap": {
+      "Z": 3.678092406709395
+    }
+  },
+  {
+    "numOfCPUs": 1,
     "regionID": 9,
-    "dataDistribution": {
-      "Region8": 15.72,
-      "Region5": 68.26,
-      "Region4": 0.14,
-      "Region6": 0.14,
-      "Region1": 15.72,
-      "key": "Region5"
+    "dataDistributionMap": {
+      "X": 4.335943238594994,
+      "Y": 12.044456762654523,
+      "Z": 9.676821490488733
     }
   }
 ]

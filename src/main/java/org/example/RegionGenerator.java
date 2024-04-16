@@ -1,9 +1,10 @@
-package org.example;import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+package org.example;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class RegionGenerator {
 
@@ -14,39 +15,108 @@ public class RegionGenerator {
         // Generate regions
         for (int i = 0; i < 10; i++) {
             int numOfCPUs = getRandomCPUs();
-            Map<String, Double> dataDistribution = getRandomDataDistribution();
-            Region region = new Region(numOfCPUs, i);
-            List<Map<String, Double>> dataDistributionList = new ArrayList<>();
-            dataDistributionList.add(dataDistribution);
-            region.setDataDistributionList(dataDistributionList);
+            //generate an empty dataDistributionMap for each region, for now
+            Map<String, Double> dataDistributionMap = new HashMap<>();
+            Region region = new Region(numOfCPUs, i, dataDistributionMap);
             regions.add(region);
         }
 
-        // Shuffle the regions for each key to make distribution random
-        shuffleRegionsForKeys(regions, "X", random);
-        shuffleRegionsForKeys(regions, "Y", random);
-        shuffleRegionsForKeys(regions, "Z", random);
+        // Generate tmp map for each key (X: R0->P3, R7->P2, P8->P1; Y: R5->P2, R9->P2, P1->P1;)
+        String[] keys = {"X", "Y", "Z"};
+        List<Map<Integer, Double>> tmpMapList = new ArrayList<>();
+        for (int i = 0; i < keys.length; i++) {
+            int k = random.nextInt(10) + 1;
+            Map<Integer, Double> tmpMap = generateTmpMap(regions, k);
+            tmpMapList.add(tmpMap);
+        }
+        // generate map that can fit into (update) region class's member dataDistributionMap.
+        for (Region region : regions) {
+            Map<String, Double> dataDistributionMap = new HashMap<>();
+
+            for (int i = 0; i < tmpMapList.size(); i++) {
+                Map<Integer, Double> tmpMap = tmpMapList.get(i);
+                String key = keys[i];
+
+                // Check if the tmpMap contains a value for the current region
+                if (tmpMap.containsKey(region.getRegionID())) {
+                    // Retrieve the value associated with the region ID
+                    Double value = tmpMap.get(region.getRegionID());
+                    // Add the entry to the dataDistributionMap
+                    dataDistributionMap.put(key, value);
+                }
+            }
+
+            // Update the region's dataDistributionMap
+            region.setDataDistributionMap(dataDistributionMap);
+        }
 
         return regions;
     }
+    private static Map<Integer, Double> generateTmpMap(List<Region> regions, int k){
+        //First, generate normally distributed double array
+        double[] result = generateNormalDistributionArray(k);
 
-    private static void shuffleRegionsForKeys(List<Region> regions, String key, Random random) {
-        List<Region> shuffledRegions = new ArrayList<>(regions);
-        Collections.shuffle(shuffledRegions, random);
-        int keyCount = 0;
-        for (Region region : shuffledRegions) {
-            if (keyCount < 3) {
-                Map<String, Double> dataDistribution = region.getDataDistributionList().get(0);
-                if (!dataDistribution.containsKey(key)) {
-                    double value = getRandomValue(random);
-                    dataDistribution.put(key, value);
-                    keyCount++;
-                }
-            } else {
-                break;
+        //second, shuffle regions.
+        List<Region> tmpRegions = new ArrayList<>(regions);
+        Collections.shuffle(tmpRegions);
+
+        //third, build tmp map.
+        Map<Integer, Double> tmpMap = new HashMap<>();
+        for (int i = 0; i < Math.min(k, tmpRegions.size()); i++) {
+            Region region = tmpRegions.get(i);
+            int regionID = region.getRegionID();
+            double value = result[i];
+            tmpMap.put(regionID, value);
+        }
+
+        // just checking...
+//        for (Map.Entry<Integer, Double> entry : tmpMap.entrySet()) {
+//            int regionID = entry.getKey();
+//            double value = entry.getValue();
+//            String formattedValue = String.format("%.1f", value); // Format value to have one digit after the decimal point
+//            System.out.println("RegionID: " + regionID + ", Value: " + formattedValue);
+//        }
+        return tmpMap;
+    }
+    //all good
+    private static double[] generateNormalDistributionArray(int k) {
+        double[] array = new double[k];
+        Random random = new Random();
+        double sum = 0;
+
+        // Generate random values following a normal distribution
+        for (int i = 0; i < k; i++) {
+            array[i] = random.nextGaussian();
+            sum += array[i];
+        }
+
+        // Normalize values to ensure they are within the range (0, 100)
+        double max = Double.MIN_VALUE;
+        double min = Double.MAX_VALUE;
+        for (double value : array) {
+            if (value > max) {
+                max = value;
+            }
+            if (value < min) {
+                min = value;
             }
         }
+        double range = max - min;
+        for (int i = 0; i < k; i++) {
+            array[i] = (array[i] - min) / range * 99.0 + 0.5;
+        }
+
+        // Adjust values to ensure the sum is exactly 100
+        double currentSum = Arrays.stream(array).sum();
+        double scaleFactor = 100 / currentSum;
+        for (int i = 0; i < k; i++) {
+            array[i] *= scaleFactor;
+        }
+
+        return array;
     }
+
+
 
     private static int getRandomCPUs() {
         Random random = new Random();
@@ -65,9 +135,16 @@ public class RegionGenerator {
     }
 
     public static void main(String[] args) {
-        List<Region> regions = generateRegions();
-        for (Region region : regions) {
-            System.out.println(region);
+        List<Region> regions = RegionGenerator.generateRegions();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(regions);
+
+        // Write JSON to file
+        try (FileWriter writer = new FileWriter("regions.json")) {
+            writer.write(json);
+            System.out.println("Regions have been written to regions.json");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

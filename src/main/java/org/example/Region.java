@@ -8,12 +8,12 @@ import java.util.Map;
 public class Region {
     private int numOfCPUs;
     private int regionID;
-    private List<Map<String, Double>> dataDistributionList;
+    private Map<String, Double> dataDistributionMap;
 
-    public Region(int numOfCPUs, int regionID) {
+    public Region(int numOfCPUs, int regionID, Map<String, Double> dataDistributionMap) {
         this.numOfCPUs = numOfCPUs;
         this.regionID = regionID;
-        this.dataDistributionList = new ArrayList<>();
+        this.dataDistributionMap = dataDistributionMap;
     }
 
     public int getNumOfCPUs() {
@@ -32,20 +32,35 @@ public class Region {
         this.regionID = regionID;
     }
 
-    public List<Map<String, Double>> getDataDistributionList() {
-        return dataDistributionList;
+    public Map<String, Double> getDataDistributionMap() {
+        return dataDistributionMap;
     }
 
-    public void setDataDistributionList(List<Map<String, Double>> dataDistributionList) {
-        this.dataDistributionList = dataDistributionList;
+    public void setDataDistributionMap(Map<String, Double> dataDistributionMap) {
+        this.dataDistributionMap = dataDistributionMap;
     }
 
+//    @Override
+//    public String toString() {
+//        return "Region{" +
+//                "numOfCPUs=" + numOfCPUs +
+//                ", regionID=" + regionID +
+//                ", dataDistributionMap=" + dataDistributionMap +
+//                '}';
+//    }
     @Override
     public String toString() {
-        return "Region{" +
-                "numOfCPUs=" + numOfCPUs +
-                ", regionID=" + regionID +
-                ", dataDistributionList=" + dataDistributionList +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("RegionID: ").append(regionID).append(", ");
+        sb.append("NumOfCPUs: ").append(numOfCPUs).append(", ");
+        sb.append("DataDistributionMap: {");
+        for (Map.Entry<String, Double> entry : dataDistributionMap.entrySet()) {
+            String key = entry.getKey();
+            double value = entry.getValue();
+            String formattedValue = String.format("%.2f", value); // Format value to have two digits after the decimal point
+            sb.append(key).append("=").append(formattedValue).append(", ");
+        }
+        sb.append("}");
+        return sb.toString();
     }
 }
