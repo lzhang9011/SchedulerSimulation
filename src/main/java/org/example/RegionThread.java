@@ -1,5 +1,7 @@
 package org.example;
 
+import java.util.Map;
+
 public class RegionThread extends Thread {
     private Region region;
 
@@ -9,15 +11,25 @@ public class RegionThread extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Region " + region.getRegionID() + " started with " + region.getNumOfCPUs() + " CPUs.");
-        for (int i = 1; i <= 2; i++) {
-            System.out.println("Region " + region.getRegionID() + " - Number: " + i);
+        Map<String, Integer> dataSizeMap = region.getDataSizeMap();
+
+        // Iterate through dataSizeMap
+        for (Map.Entry<String, Integer> entry : dataSizeMap.entrySet()) {
+            String key = entry.getKey();
+            int dataSize = entry.getValue();
+
+            long startTime = System.currentTimeMillis();
+
             try {
-                Thread.sleep(1000); // Sleep for 1 second
+                System.out.println("Processing data for key: " + key);
+                Thread.sleep(dataSize * 1000);
+                long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+                System.out.println("Data processing for key " + key + " completed in " + elapsedTime + " seconds.");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
+
 }
 

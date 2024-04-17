@@ -7,18 +7,20 @@ import java.util.List;
 import java.util.*;
 
 public class RegionGenerator {
+    private static final int k = 1;
 
-    public static List<Region> generateRegions() {
+    public static List<Region> generateRegions(int numOfRegions) {
         List<Region> regions = new ArrayList<>();
         Random random = new Random();
 
         // Generate regions
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < numOfRegions; i++) {
             int numOfCPUs = getRandomCPUs();
             //generate an empty dataDistributionMap for each region, for now
             Map<String, Double> dataDistributionMap = new HashMap<>();
+            Map<String, Integer> dataSizeMap = new HashMap<>();
             Map<Integer, Integer> connectivityMap = new HashMap<>();
-            Region region = new Region(numOfCPUs, i, dataDistributionMap, connectivityMap);
+            Region region = new Region(numOfCPUs, i, dataDistributionMap, dataSizeMap, connectivityMap);
             regions.add(region);
         }
         // -------------------------------------------------------------------------------------
@@ -26,11 +28,12 @@ public class RegionGenerator {
         String[] keys = {"X", "Y", "Z"};
         List<Map<Integer, Double>> tmpMapList = new ArrayList<>();
         for (int i = 0; i < keys.length; i++) {
-            int k = random.nextInt(10) + 1;
-            Map<Integer, Double> tmpMap = generateTmpMap(regions, k);
+            int k = random.nextInt(numOfRegions) + 1;
+            Map<Integer, Double> tmpMap = generateTmpMap(regions, k); // k: random number of regions that this key exist. range [1-10]
             tmpMapList.add(tmpMap);
         }
-        // generate map that can fit into (update) region class's member dataDistributionMap.
+        // generate dataDistributionMap that can fit into (update) region class's member dataDistributionMap.
+        // And Generate dataSizeMap based on the dataDistributionMap, for later use, for task completion time calculation
         for (Region region : regions) {
             Map<String, Double> dataDistributionMap = new HashMap<>();
 
@@ -46,14 +49,21 @@ public class RegionGenerator {
                     dataDistributionMap.put(key, value);
                 }
             }
-
-            // Update the region's dataDistributionMap
             region.setDataDistributionMap(dataDistributionMap);
+
+            Map<String, Integer> dataSizeMap = new HashMap<>();
+            for (Map.Entry<String, Double> entry : dataDistributionMap.entrySet()) {
+                String key = entry.getKey();
+                int dataSize = random.nextInt(11) + 10; // dataSize range between [10, 20]
+                dataSizeMap.put(key, dataSize);
+            }
+            region.setDataSizeMap(dataSizeMap);
         }
+
         // ----------------------------------------------
         // generate connectivityMap for each region
         for (Region region : regions) {
-            Map<Integer, Integer> connectivityMap = generateConnectivityMap(region.getRegionID());
+            Map<Integer, Integer> connectivityMap = generateConnectivityMap(region.getRegionID(), numOfRegions);
             region.setConnectivityMap(connectivityMap);
         }
 
@@ -62,7 +72,7 @@ public class RegionGenerator {
     private static Map<Integer, Double> generateTmpMap(List<Region> regions, int k){
         //First, generate normally distributed double array
         double[] result = generateNormalDistributionArray(k);
-
+//        System.out.println(Arrays.toString(result));
         //second, shuffle regions.
         List<Region> tmpRegions = new ArrayList<>(regions);
         Collections.shuffle(tmpRegions);
@@ -109,8 +119,13 @@ public class RegionGenerator {
             }
         }
         double range = max - min;
-        for (int i = 0; i < k; i++) {
-            array[i] = (array[i] - min) / range * 99.0 + 0.5;
+        if (range == 0) {
+            // Handle the case when range is zero
+            Arrays.fill(array, 50); // Set all values to 50
+        } else {
+            for (int i = 0; i < k; i++) {
+                array[i] = (array[i] - min) / range * 99.0 + 0.5;
+            }
         }
 
         // Adjust values to ensure the sum is exactly 100
@@ -122,10 +137,10 @@ public class RegionGenerator {
 
         return array;
     }
-    private static Map<Integer, Integer> generateConnectivityMap(int selfRegionID) {
+    private static Map<Integer, Integer> generateConnectivityMap(int selfRegionID, int numOfRegions) {
         Random random = new Random();
         Map<Integer, Integer> connectivityMap = new HashMap<>();
-        for (int i = 0; i < 10; i++) { // Assuming 10 regions
+        for (int i = 0; i < numOfRegions; i++) { // Assuming 10 regions
             if (i != selfRegionID) { // Exclude self region
                 connectivityMap.put(i, random.nextInt(401) + 100); // Random integer between 100 and 500
             }
@@ -140,18 +155,10 @@ public class RegionGenerator {
         return cpus[random.nextInt(cpus.length)];
     }
 
-    private static Map<String, Double> getRandomDataDistribution() {
-        Map<String, Double> dataDistribution = new HashMap<>();
-        return dataDistribution;
-    }
-
-    private static double getRandomValue(Random random) {
-        double[] values = {0.14, 15.27, 68.26};
-        return values[random.nextInt(values.length)];
-    }
 
     public static void main(String[] args) {
-        List<Region> regions = RegionGenerator.generateRegions();
+
+        List<Region> regions = RegionGenerator.generateRegions(k);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(regions);
 
