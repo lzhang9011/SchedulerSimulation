@@ -1,24 +1,25 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Region {
     private int numOfCPUs;
     private int regionID;
+    private int diskSize;
     private Map<String, Double> dataDistributionMap;
     private Map<String, Integer> dataSizeMap;
     private Map<Integer, Integer> connectivityMap;
 
 
-    public Region(int numOfCPUs, int regionID, Map<String, Double> dataDistributionMap, Map<String, Integer> dataSizeMap, Map<Integer, Integer> connectivityMap) {
+
+    public Region(int numOfCPUs, int regionID, int diskSize, Map<String, Double> dataDistributionMap, Map<String, Integer> dataSizeMap, Map<Integer, Integer> connectivityMap) {
         this.numOfCPUs = numOfCPUs;
         this.regionID = regionID;
+        this.diskSize = diskSize;
         this.dataDistributionMap = dataDistributionMap;
         this.dataSizeMap = dataSizeMap;
         this.connectivityMap = connectivityMap;
+
 
     }
 
@@ -61,12 +62,21 @@ public class Region {
         this.connectivityMap = connectivityMap;
     }
 
+    public int getDiskSize() {
+        return diskSize;
+    }
+
+    public void setDiskSize(int diskSize) {
+        this.diskSize = diskSize;
+    }
+
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Region{");
         sb.append("numOfCPUs=").append(numOfCPUs).append(", ");
+        sb.append("diskSize=").append(diskSize).append(", ");
         sb.append("regionID=").append(regionID).append(", ");
         sb.append("dataDistributionMap={");
         for (Map.Entry<String, Double> entry : dataDistributionMap.entrySet()) {

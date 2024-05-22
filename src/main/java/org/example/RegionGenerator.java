@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.*;
 
 public class RegionGenerator {
-    private static final int k = 1;
+    private static final int k = 2; //num of regions
+    private static final int n = 10000; // diskSize for every region
 
     public static List<Region> generateRegions(int numOfRegions) {
         List<Region> regions = new ArrayList<>();
@@ -16,11 +17,13 @@ public class RegionGenerator {
         // Generate regions
         for (int i = 0; i < numOfRegions; i++) {
             int numOfCPUs = getRandomCPUs();
+            int diskSize = n;
             //generate an empty dataDistributionMap for each region, for now
             Map<String, Double> dataDistributionMap = new HashMap<>();
             Map<String, Integer> dataSizeMap = new HashMap<>();
             Map<Integer, Integer> connectivityMap = new HashMap<>();
-            Region region = new Region(numOfCPUs, i, dataDistributionMap, dataSizeMap, connectivityMap);
+
+            Region region = new Region(numOfCPUs, i, diskSize, dataDistributionMap, dataSizeMap, connectivityMap);
             regions.add(region);
         }
         // -------------------------------------------------------------------------------------
@@ -36,7 +39,6 @@ public class RegionGenerator {
         // And Generate dataSizeMap based on the dataDistributionMap, for later use, for task completion time calculation
         for (Region region : regions) {
             Map<String, Double> dataDistributionMap = new HashMap<>();
-
             for (int i = 0; i < tmpMapList.size(); i++) {
                 Map<Integer, Double> tmpMap = tmpMapList.get(i);
                 String key = keys[i];
@@ -51,13 +53,16 @@ public class RegionGenerator {
             }
             region.setDataDistributionMap(dataDistributionMap);
 
+            // for each region's dataDistributionMap, generate the corresponding dataSizeMap.
             Map<String, Integer> dataSizeMap = new HashMap<>();
             for (Map.Entry<String, Double> entry : dataDistributionMap.entrySet()) {
                 String key = entry.getKey();
-                int dataSize = random.nextInt(11) + 10; // dataSize range between [10, 20]
+                int dataSize = random.nextInt(41) + 10; // dataSize range between [10, 50]
                 dataSizeMap.put(key, dataSize);
             }
             region.setDataSizeMap(dataSizeMap);
+
+
         }
 
         // ----------------------------------------------
@@ -71,7 +76,7 @@ public class RegionGenerator {
     }
     private static Map<Integer, Double> generateTmpMap(List<Region> regions, int k){
         //First, generate normally distributed double array
-        double[] result = generateNormalDistributionArray(k);
+        double[] result = generateNormalDistributionArray(k); // the values in array sum up to 100%
 //        System.out.println(Arrays.toString(result));
         //second, shuffle regions.
         List<Region> tmpRegions = new ArrayList<>(regions);
@@ -154,7 +159,6 @@ public class RegionGenerator {
         int[] cpus = {1, 2, 4, 8};
         return cpus[random.nextInt(cpus.length)];
     }
-
 
     public static void main(String[] args) {
 
