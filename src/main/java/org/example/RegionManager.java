@@ -24,6 +24,33 @@ public class RegionManager {
     public Region getRegion(int regionID) {
         return regionMap.get(regionID);
     }
+    public GlobalScreenshotPart[] initializeGlobalScreenshotParts() {
+        GlobalScreenshotPart[] parts = new GlobalScreenshotPart[regionMap.size()];
+        int partsID = 0;
+
+        // Iterate through each region and initialize the corresponding GlobalScreenshotPart
+        for (Map.Entry<Integer, Region> entry : regionMap.entrySet()) {
+            Region region = entry.getValue();
+            int numOfCPUs = region.getNumOfCPUs();
+            Map<String, Integer> dataSizeMap = region.getDataSizeMap();
+
+            // true == free, false == busy
+            boolean[] cpuStatus = new boolean[numOfCPUs];
+            Arrays.fill(cpuStatus, true);
+
+            int totalTasks = dataSizeMap.values().stream().mapToInt(Integer::intValue).sum();
+            int unassignedTasks = totalTasks;
+            int assignedTasks = 0;
+            double pendingPortions = totalTasks;
+
+            // Create and initialize the GlobalScreenshotPart for this region
+            GlobalScreenshotPart gsp = new GlobalScreenshotPart(cpuStatus, unassignedTasks, assignedTasks, totalTasks, pendingPortions);
+            parts[partsID] = gsp; // Add to the parts array
+            partsID++;
+        }
+
+        return parts;
+    }
     public static Map<Integer, Region> readRegions(String file) {
         Gson gson = new Gson();
         Map<Integer, Region> regionMap = new HashMap<>();
@@ -43,6 +70,7 @@ public class RegionManager {
         return regionMap;
     }
 
+
     public boolean checkIfAnyBusy(GlobalScreenshot gs) {
 //        System.out.println("checking");
         GlobalScreenshotPart[] parts = gs.getParts();
@@ -58,152 +86,83 @@ public class RegionManager {
 //        System.out.println("no one is busy");
         return false;
     }
-    public void assignInitialTasks(GlobalScreenshot gs, double partitionsPerTimeStep) {
+    public void updateGlobalScreenshotWithBudget(GlobalScreenshot gs, double alpha, int maxWaitTime) {
         GlobalScreenshotPart[] parts = gs.getParts();
-        // assign initial tasks for every region's GlobalScreenshotPart
-        for (int i = 0; i < parts.length; i++) {
-            GlobalScreenshotPart gsp = parts[i];
-            int numOfWorkers = gsp.getCpuStatus().length;
-            int unassignedTasks = gsp.getUnassignedTasks();
-            int assignedTasks = gsp.getAssignedTasks();
-            int totalTasks = gsp.getTotalTasks();
-            double pendingPortions = gsp.getPendingPortions();
+        for (GlobalScreenshotPart part : parts) {
+            setDynamicWaitingTime(part, alpha);
 
-            boolean[] newStates = new boolean[numOfWorkers]; // all false(busy)
-            int newStatesID = 0;
-            double maxCurrentCapacity = partitionsPerTimeStep * numOfWorkers;
-
-            if (pendingPortions <= maxCurrentCapacity) {
-                int numOfFreeWorkers = (int)((maxCurrentCapacity - pendingPortions)/partitionsPerTimeStep);
-                while (numOfFreeWorkers > 0) {
-                    newStates[newStatesID] = true;
-                    numOfFreeWorkers--;
-                    newStatesID++;
+            Queue<Job> jobQueue = part.getJobQueue();
+            for (Job job : jobQueue) {
+                if (job.getWaitingTime() > maxWaitTime) {
+                    System.out.println("Job " + job.getJobId() + " sent to the cloud.");
+                    jobQueue.poll();
                 }
-                unassignedTasks = 0;
-                assignedTasks = totalTasks;
-                pendingPortions = 0.0;
+            }
+        }
+    }
+
+
+    public void setDynamicWaitingTime(GlobalScreenshotPart part, double alpha) {
+        Queue<Job> jobQueue = part.getJobQueue();
+        for (Job job : jobQueue) {
+            int dynamicWait = (int) (alpha * job.getSize() * job.getEstimatedCompletionTime());
+            job.setWaitingTime(dynamicWait);
+        }
+    }
+
+    public void executeJobsOutOfOrder(GlobalScreenshotPart part, double partitionsPerTimeStep) {
+        Queue<Job> jobQueue = part.getJobQueue();
+        boolean[] cpuStatus = part.getCpuStatus();
+        int availableCPUs = 0;
+        for (boolean cpu : cpuStatus) {
+            if (cpu) {
+                availableCPUs++;
+            }
+        }
+
+        while (!jobQueue.isEmpty()) {
+            Job job = jobQueue.peek();
+            if (job.getSize() <= availableCPUs) {
+                availableCPUs -= job.getSize();
+                jobQueue.poll();
+                System.out.println("Executing job " + job.getJobId());
+                try {
+                    Thread.sleep(job.getEstimatedCompletionTime() * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("Completed job " + job.getJobId());
             } else {
-                pendingPortions -= maxCurrentCapacity;
-                assignedTasks += numOfWorkers;
-                unassignedTasks -= numOfWorkers;
+                break; // No jobs can fit
             }
-            gsp.setUnassignedTasks(unassignedTasks);
-            gsp.setAssignedTasks(assignedTasks);
-            gsp.setPendingPortions(pendingPortions);
-            gsp.setCpuStatus(newStates);
         }
     }
-    public void updateGlobalScreenshot (GlobalScreenshot gs, double partitionsPerTimeStep, boolean update) {
-        GlobalScreenshotPart[] parts = gs.getParts();
 
-        // update every region's GlobalScreenshotPart.
-        for (int i = 0; i < parts.length; i++) {
-            GlobalScreenshotPart gsp = parts[i];
-            int numOfWorkers = gsp.getCpuStatus().length;
-            int unassignedTasks = gsp.getUnassignedTasks();
-            int assignedTasks = gsp.getAssignedTasks();
-            int totalTasks = gsp.getTotalTasks();
-            double pendingPortions = gsp.getPendingPortions();
-            boolean[] newStates = new boolean[numOfWorkers]; // all false(busy)
-            int newStatesID = 0;
-            double maxCurrentCapacity = partitionsPerTimeStep * numOfWorkers;
-
-            if (pendingPortions <= maxCurrentCapacity) {
-                int numOfFreeWorkers = (int)((maxCurrentCapacity - pendingPortions)/partitionsPerTimeStep);
-                while (numOfFreeWorkers > 0 && newStatesID < numOfWorkers) {
-                    newStates[newStatesID] = true;
-                    numOfFreeWorkers--;
-                    newStatesID++;
-                }
-                unassignedTasks = 0;
-                assignedTasks = totalTasks;
-                pendingPortions = 0.0;
-            }
-            else {
-                pendingPortions -= maxCurrentCapacity;
-                if (update){
-                    if (unassignedTasks < numOfWorkers) {
-                        assignedTasks += unassignedTasks;
-                        unassignedTasks = 0;
-
-                    } else {
-                        assignedTasks += numOfWorkers;
-                        unassignedTasks -= numOfWorkers;
-                    }
-                }
-
-            }
-            gsp.setUnassignedTasks(unassignedTasks);
-            gsp.setAssignedTasks(assignedTasks);
-            gsp.setPendingPortions(pendingPortions);
-            gsp.setCpuStatus(newStates);
-        }
-
-        // update GlobalScreenshot
-        gs.setParts(parts);
-    }
 
 
     public static void main(String[] args) {
-        double partitionsPerTimeStep; // partitions per time step
-
-        // each partition takes n time steps
-//        int timeOfCompletion = CompletionTimeGenerator.generateTimeOfCompletion(DISTRIBUTION_CHOICE);
-        int timeOfCompletion = 5;
-        System.out.println("time of completion: " + timeOfCompletion);
-        // suppose timeOfCompletion = 5, it means a partitions takes 5 time steps to finish. so it means partitionsPerTimeStep = 1/5.
-        partitionsPerTimeStep = 1.0 / timeOfCompletion;
+        double partitionsPerTimeStep = 0.2; // in each time step, 0.2 job should be completed.
+        int maxWaitTime = 5; // in secs
+        double alpha = 0.5; // the smaller alpha is, the smaller the waiting time, the more likely the job is sent to cloud
 
         String regionsFile = "regions.json";
         Map<Integer, Region> regionMap = readRegions(regionsFile);
         RegionManager rm = new RegionManager(regionMap);
 
-        GlobalScreenshotPart[] parts = new GlobalScreenshotPart[regionMap.size()]; // an empty gsp[]
-        int partsID = 0;
-
-        //First, generate empty GlobalScreenshotPart for every region,
-        for (Map.Entry<Integer, Region> entry:regionMap.entrySet()){
-
-            int numOfCPUs = entry.getValue().getNumOfCPUs();
-            Map<String, Integer> dataSizeMap = entry.getValue().getDataSizeMap();
-            boolean[] cpuStatus = new boolean[numOfCPUs];
-            for (int i = 0; i < cpuStatus.length; i++) {
-                cpuStatus[i] = true;
-            }
-
-            int totalTasks = dataSizeMap.values().stream().mapToInt(Integer::intValue).sum();
-            int unassignedTasks = dataSizeMap.values().stream().mapToInt(Integer::intValue).sum();
-            int assignedTasks = 0;
-            double pendingPortions = unassignedTasks;
-
-            GlobalScreenshotPart gsp = new GlobalScreenshotPart(cpuStatus, unassignedTasks, assignedTasks, totalTasks, pendingPortions);
-            parts[partsID] = gsp;
-            partsID++;
-        }
+        GlobalScreenshotPart[] parts = rm.initializeGlobalScreenshotParts();
 
         GlobalScreenshot gs = new GlobalScreenshot(parts);
-        gs.printDetails(); // no worker has been assigned any jobs yet
 
+        gs.printDetails();
 
-        // Second, assign initial tasks.
-        rm.assignInitialTasks(gs, partitionsPerTimeStep);
-        gs.printDetails(); // initial jobs has been assigned
-//
-        // Third, check if any worker in any of the region is still busy. If so, stay in the loop.
-        // check if any item in cpuStatus in any region == false, if so, means at least one worker is still busy
-        // stay in the while loop.
-        int count = timeOfCompletion - 1; // 此时count=4
+        // scheduler
         while (rm.checkIfAnyBusy(gs)) {
-            if (count > 0) {
-                rm.updateGlobalScreenshot(gs, partitionsPerTimeStep, false);
-                count--;
-            } else if (count == 0) {
-                rm.updateGlobalScreenshot(gs, partitionsPerTimeStep, true);
-                count = timeOfCompletion - 1;
+            rm.updateGlobalScreenshotWithBudget(gs, alpha, maxWaitTime);
+            for (GlobalScreenshotPart part : gs.getParts()) {
+                rm.executeJobsOutOfOrder(part, partitionsPerTimeStep);
             }
-
-            gs.printDetails();
         }
     }
+
+
 }

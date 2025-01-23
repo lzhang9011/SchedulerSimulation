@@ -1,4 +1,6 @@
 package org.example;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class GlobalScreenshotPart {
     private boolean[] cpuStatus;
@@ -6,6 +8,7 @@ public class GlobalScreenshotPart {
     private int assignedTasks;
     private int totalTasks;
     private double pendingPortions;
+    private Queue<Job> jobQueue;
 
     public GlobalScreenshotPart(boolean[] cpuStatus, int unassignedTasks, int assignedTasks, int totalTasks, double pendingPortions) {
         this.cpuStatus = new boolean[cpuStatus.length];
@@ -16,6 +19,7 @@ public class GlobalScreenshotPart {
         this.assignedTasks = assignedTasks;
         this.totalTasks = totalTasks;
         this.pendingPortions = pendingPortions;
+        this.jobQueue = new LinkedList<>();
     }
     public boolean[] getCpuStatus() {
         return cpuStatus;
@@ -47,5 +51,9 @@ public class GlobalScreenshotPart {
     }
     public void setPendingPortions(double pendingPortions) {
         this.pendingPortions = pendingPortions;
+    }
+
+    public Queue<Job> getJobQueue(){
+        return jobQueue;
     }
 }

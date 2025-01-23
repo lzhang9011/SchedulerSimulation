@@ -1,34 +1,32 @@
 [
   {
-    "numOfCPUs": 1,
+    "numOfCPUs": 2,
     "regionID": 0,
     "diskSize": 10000,
     "dataDistributionMap": {
-      "Y": 100.0,
-      "Z": 1.2182488305205674
+      "Y": 100.0
     },
     "dataSizeMap": {
-      "Y": 29,
-      "Z": 36
+      "Y": 19
     },
     "connectivityMap": {
-      "1": 373
+      "1": 153
     }
   },
   {
-    "numOfCPUs": 8,
+    "numOfCPUs": 4,
     "regionID": 1,
     "diskSize": 10000,
     "dataDistributionMap": {
       "X": 100.0,
-      "Z": 98.78175116947943
+      "Z": 100.0
     },
     "dataSizeMap": {
-      "X": 17,
-      "Z": 28
+      "X": 38,
+      "Z": 47
     },
     "connectivityMap": {
-      "0": 384
+      "0": 319
     }
   }
 ]
