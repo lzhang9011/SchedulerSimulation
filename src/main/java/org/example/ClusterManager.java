@@ -34,7 +34,7 @@ public class ClusterManager {
         for (Cluster cluster : clusters) {
             System.out.println(cluster);
         }
-        System.out.println("------------------------------");
+//        System.out.println("------------------------------");
     }
 
 
