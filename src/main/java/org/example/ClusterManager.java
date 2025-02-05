@@ -132,9 +132,9 @@ public class ClusterManager {
                 jobs.add(job);
 
                 System.out.println("Entry " + (++entryCount) + ":");
-//                System.out.println("Duration: " + values[durationIdx].trim());
-//                System.out.println("GPU Num: " + values[gpuIdx].trim());
-//                System.out.println("CPU Num: " + values[cpuIdx].trim());
+                System.out.println("Duration: " + values[durationIdx].trim());
+                System.out.println("GPU Num: " + values[gpuIdx].trim());
+                System.out.println("CPU Num: " + values[cpuIdx].trim());
                 System.out.println("Submit Time: " + values[submitTimeIdx].trim());
                 System.out.println("---------------------------");
             }
