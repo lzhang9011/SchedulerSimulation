@@ -26,12 +26,6 @@ public class ClusterManager {
         for (int tick = 1; tick <= totalTicks; tick++) {
             System.out.println("Tick " + tick);
             updateClusterStatus();
-
-            try {
-                Thread.sleep(1000); // Simulating 1 second per tick, for testing
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
         System.out.println("\nSimulation complete.");
