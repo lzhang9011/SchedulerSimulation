@@ -1,36 +1,57 @@
 package org.example;
 
-public class Job {
-    private String jobId;
-    private int size;
-    private int estimatedCompletionTime;
-    private int waitingTime;
+public class Job implements Comparable<Job> {
+    private final int duration;
+    private final int resourceRequirement;
+    private int elapsedTime;
+    private final int arrivalTime;
+    private final double dataLoad;
 
-    public Job(String jobId, int size, int estimatedCompletionTime) {
-        this.jobId = jobId;
-        this.size = size;
-        this.estimatedCompletionTime = estimatedCompletionTime;
-        this.waitingTime = 0;
+    public Job(int duration, int resourceRequirement, int arrivalTime, double dataLoad) {
+        this.duration = duration;
+        this.resourceRequirement = resourceRequirement;
+        this.elapsedTime = 0;
+        this.arrivalTime = arrivalTime;
+        this.dataLoad = dataLoad;
     }
 
-    // Getters and Setters
-    public String getJobId() {
-        return jobId;
+    public int getDuration() {
+        return duration;
     }
 
-    public int getSize() {
-        return size;
+    public int getResourceRequirement() {
+        return resourceRequirement;
     }
 
-    public int getEstimatedCompletionTime() {
-        return estimatedCompletionTime;
+    public int getElapsedTime() {
+        return elapsedTime;
     }
 
-    public int getWaitingTime() {
-        return waitingTime;
+    public void incrementElapsedTime() {
+        this.elapsedTime++;
     }
 
-    public void setWaitingTime(int waitingTime) {
-        this.waitingTime = waitingTime;
+    public int getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public double getDataLoad() {
+        return dataLoad;
+    }
+
+    @Override
+    public int compareTo(Job other) {
+        return Integer.compare(this.arrivalTime, other.arrivalTime);
+    }
+
+    @Override
+    public String toString() {
+        return "Job{" +
+                "duration=" + duration +
+                ", resourceRequirement=" + resourceRequirement +
+                ", elapsedTime=" + elapsedTime +
+                ", arrivalTime=" + arrivalTime +
+                ", dataLoad=" + dataLoad +
+                '}';
     }
 }

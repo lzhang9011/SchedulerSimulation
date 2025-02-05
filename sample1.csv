@@ -1,0 +1,2 @@
+job_id,user,vc,gpu_num,cpu_num,node_num,state,submit_time,start_time,end_time,duration,queue
+478179,uYsd5,vcWoR,0,1,1,COMPLETED,2020-04-23 23:18:20,2020-04-23 23:18:20,2020-04-23 23:18:21,1,0
