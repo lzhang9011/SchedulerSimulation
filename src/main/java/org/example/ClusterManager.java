@@ -4,7 +4,8 @@ import java.io.*;
 import java.util.*;
 
 public class ClusterManager {
-    public static final int TICK_DURATION_SECONDS = 60; // 1 simulation tick = 60 sec in real
+    public static final double jobClassificationThreshold = 0.6; // if 60% jobs are short jobs, or if 60% jobs are long jobs.
+    public static int tickDurationSeconds = 1; // start with 1:1 resolution
     private int x;
     private static final double GBperTick = 0.05;
     private List<Cluster> clusters;
@@ -19,8 +20,8 @@ public class ClusterManager {
     }
 
     public void runSimulation(int totalTicks) {
-        System.out.println("Simulation starting... Each tick = " + TICK_DURATION_SECONDS + " seconds.");
-        System.out.println("Initial Random X Value: " + x);
+        System.out.println("Simulation starting... Each tick = " + tickDurationSeconds + " seconds.");
+//        System.out.println("Initial Random X Value: " + x);
         System.out.println("DataLoad Per Tick: " + GBperTick + " GB\n");
 
         for (int tick = 1; tick <= totalTicks; tick++) {
@@ -122,7 +123,7 @@ public class ClusterManager {
                 }
 
                 int duration = Integer.parseInt(values[durationIdx].trim());
-                int durationInTicks = duration / TICK_DURATION_SECONDS;
+                int durationInTicks = duration / tickDurationSeconds;
                 int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
                 int arrivalTime = 0;
                 int rand = manager.getX();
@@ -146,6 +147,33 @@ public class ClusterManager {
         } catch (IOException e) {
             System.err.println("Error reading the file: " + e.getMessage());
         }
+
+        // at this point, my Jobs have un-translated durations in terms of simulation tick.
+
+        // 3.1 examining resolution. (1:1 or 1:60 in terms of time translation)
+        int longJobCount = 0;
+        for (Job job : jobs) {
+            if (job.getDuration() > 60) {
+                longJobCount++;
+            }
+        }
+
+        double longJobRadio = (double) longJobCount / jobs.size();
+
+        if (longJobRadio > ClusterManager.jobClassificationThreshold) {
+            System.out.println("long jobs wins!");
+            tickDurationSeconds = 60; //long jobs are majority
+            // update job class's duration with the correct resolution
+            for (Job job : jobs) {
+                job.setDuration((int) Math.ceil(job.getDuration() / (double)tickDurationSeconds));
+            }
+
+        } else {
+            tickDurationSeconds = 1; // short jobs are majority, no need to update jobs
+
+        }
+
+
 
         //4. print job list
         System.out.println(jobs);

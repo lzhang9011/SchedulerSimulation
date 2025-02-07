@@ -1,7 +1,7 @@
 package org.example;
 
 public class Job implements Comparable<Job> {
-    private final int duration;
+    private int duration;
     private final int resourceRequirement;
     private int elapsedTime;
     private final int arrivalTime;
@@ -17,6 +17,9 @@ public class Job implements Comparable<Job> {
 
     public int getDuration() {
         return duration;
+    }
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
     public int getResourceRequirement() {
