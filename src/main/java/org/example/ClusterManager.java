@@ -3,20 +3,36 @@ package org.example;
 import java.io.*;
 import java.util.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+
 public class ClusterManager {
     public static final double jobClassificationThreshold = 0.6; // if 60% jobs are short jobs, or if 60% jobs are long jobs.
     public static int tickDurationSeconds = 1; // start with 1:1 resolution
     private int x;
     private static final double GBperTick = 0.05;
+
+    private final String baseTime = "2020-03-18 04:01:39";
+    private final long baseEpochSeconds;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+
     private List<Cluster> clusters;
 
     public ClusterManager(List<Cluster> clusters) {
         this.clusters = clusters;
         this.x = new Random().nextInt(10) + 1; // random number [1,10]
+
+        LocalDateTime dateTime = LocalDateTime.parse(baseTime, formatter);
+        this.baseEpochSeconds = dateTime.toEpochSecond(ZoneOffset.UTC);
     }
 
     public int getX() {
         return x;
+    }
+    public long getBaseEpochSeconds() {
+        return baseEpochSeconds;
     }
 
     public void runSimulation(int totalTicks) {
@@ -125,7 +141,10 @@ public class ClusterManager {
                 int duration = Integer.parseInt(values[durationIdx].trim());
                 int durationInTicks = duration / tickDurationSeconds;
                 int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
-                int arrivalTime = 0;
+                long submitEpochSeconds = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter)
+                        .toEpochSecond(ZoneOffset.UTC);
+                int arrivalTime = (int) (submitEpochSeconds - manager.getBaseEpochSeconds());
+
                 int rand = manager.getX();
                 System.out.println("random variable: " + rand);
                 double dataLoad = durationInTicks * resourceRequirement * GBperTick + rand;
@@ -163,9 +182,10 @@ public class ClusterManager {
         if (longJobRadio > ClusterManager.jobClassificationThreshold) {
             System.out.println("long jobs wins!");
             tickDurationSeconds = 60; //long jobs are majority
-            // update job class's duration with the correct resolution
+            // update job class's duration and arrivalTime with the correct resolution
             for (Job job : jobs) {
                 job.setDuration((int) Math.ceil(job.getDuration() / (double)tickDurationSeconds));
+                job.setArrivalTime((int) Math.ceil(job.getArrivalTime() / (double)tickDurationSeconds));
             }
 
         } else {

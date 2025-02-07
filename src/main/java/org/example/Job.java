@@ -4,7 +4,7 @@ public class Job implements Comparable<Job> {
     private int duration;
     private final int resourceRequirement;
     private int elapsedTime;
-    private final int arrivalTime;
+    private int arrivalTime;
     private final double dataLoad;
 
     public Job(int duration, int resourceRequirement, int arrivalTime, double dataLoad) {
@@ -36,6 +36,9 @@ public class Job implements Comparable<Job> {
 
     public int getArrivalTime() {
         return arrivalTime;
+    }
+    public void setArrivalTime(int arrivalTime) {
+        this.arrivalTime = arrivalTime;
     }
 
     public double getDataLoad() {
