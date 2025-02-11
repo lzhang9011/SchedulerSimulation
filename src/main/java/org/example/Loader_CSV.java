@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public class Loader_CSV {
 
@@ -32,7 +33,7 @@ public class Loader_CSV {
             return;
         }
 
-        Collections.shuffle(completedEntries);
+//        Collections.shuffle(completedEntries);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             if (header != null) {
@@ -41,8 +42,14 @@ public class Loader_CSV {
             }
 
             int limit = Math.min(sampleSize, completedEntries.size());
+
+            if (sampleSize > completedEntries.size()) {
+                throw new IllegalArgumentException("how is this possible exception\n");
+            }
+
+            int randomStartIndex = new Random().nextInt(completedEntries.size() - sampleSize - 1) ; //[0,size - 1 - 10]
             for (int i = 0; i < limit; i++) {
-                writer.write(completedEntries.get(i));
+                writer.write(completedEntries.get(i + randomStartIndex));
                 writer.newLine();
             }
 

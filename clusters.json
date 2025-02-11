@@ -3,20 +3,26 @@
     "numOfCPUs": 16,
     "cpuAvailable": 16,
     "regionID": 1,
-    "storage": 1000,
-    "currentTotalData": 700,
-    "executionCostPerMin": 0.1,
+    "storage": 10000000,
+    "currentTotalData": 0,
+    "executionCostPerMin": 0.0,
     "bandwidth": 10,
-    "jobQueue": []
+    "processCapability": 0.0,
+    "eventQueue": [],
+    "waitingQueue": [],
+    "runningJobs": {}
   },
   {
     "numOfCPUs": 64,
     "cpuAvailable": 64,
     "regionID": 2,
-    "storage": 10000,
+    "storage": 10000000,
     "currentTotalData": 0,
-    "executionCostPerMin": 2.0,
+    "executionCostPerMin": 0.0,
     "bandwidth": 10,
-    "jobQueue": []
+    "processCapability": 0.0,
+    "eventQueue": [],
+    "waitingQueue": [],
+    "runningJobs": {}
   }
 ]

@@ -1,13 +1,15 @@
 package org.example;
 
 public class Job implements Comparable<Job> {
+    private int jobID;
     private int duration;
     private final int resourceRequirement;
     private int elapsedTime;
     private int arrivalTime;
     private final double dataLoad;
 
-    public Job(int duration, int resourceRequirement, int arrivalTime, double dataLoad) {
+    public Job(int jobID, int duration, int resourceRequirement, int arrivalTime, double dataLoad) {
+        this.jobID = jobID;
         this.duration = duration;
         this.resourceRequirement = resourceRequirement;
         this.elapsedTime = 0;
@@ -15,6 +17,13 @@ public class Job implements Comparable<Job> {
         this.dataLoad = dataLoad;
     }
 
+    public int getJobID() {
+        return jobID;
+    }
+
+    public void setJobID(int jobID) {
+        this.jobID = jobID;
+    }
     public int getDuration() {
         return duration;
     }
@@ -53,7 +62,8 @@ public class Job implements Comparable<Job> {
     @Override
     public String toString() {
         return "Job{" +
-                "duration=" + duration +
+                "jobID=" + jobID +
+                ", duration=" + duration +
                 ", resourceRequirement=" + resourceRequirement +
                 ", elapsedTime=" + elapsedTime +
                 ", arrivalTime=" + arrivalTime +

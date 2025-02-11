@@ -17,8 +17,8 @@ public class ClusterGenerator {
     public static List<Cluster> generateClusters() {
         List<Cluster> clusters = new ArrayList<>();
 
-        clusters.add(new Cluster(16, 1, 1000, 700, 0.1, 10, 0.05));
-        clusters.add(new Cluster(64, 2, 10000, 0, 2.0, 10, 0.5));
+        clusters.add(new Cluster(16, 1, 10000000, 0, 0.0, 10, 0.0));
+        clusters.add(new Cluster(64, 2, 10000000, 0, 0.0, 10, 0.0));
 
         return clusters;
     }

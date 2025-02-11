@@ -1,6 +1,6 @@
 package org.example;
 
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class Cluster {
     private int numOfCPUs;
@@ -11,7 +11,9 @@ public class Cluster {
     private double executionCostPerMin;
     private int bandwidth;
     private double processCapability; //GB per tick, per CPU.
-    private PriorityQueue<Job> jobQueue;
+    private final PriorityQueue<Job> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.getArrivalTime()));
+    private final Queue<Job> waitingQueue = new LinkedList<>();
+    private final Map<Integer, Job> runningJobs = new HashMap<>();
 
     public Cluster(int numOfCPUs, int regionID, int storage, int currentTotalData,
                    double executionCostPerMin, int bandwidth, double processCapability) {
@@ -23,32 +25,33 @@ public class Cluster {
         this.executionCostPerMin = executionCostPerMin;
         this.bandwidth = bandwidth;
         this.processCapability = processCapability;
-        this.jobQueue = new PriorityQueue<>();
     }
 
     public void addJob(Job job) {
-        jobQueue.offer(job);
-        System.out.println("Added: " + job);
+        eventQueue.offer(job);
     }
 
-    public Job getNextJob() {
-        return jobQueue.poll();
+    public void addToWaitingQueue(Job job) {
+        waitingQueue.add(job);
     }
 
-    public boolean hasPendingJobs() {
-        return !jobQueue.isEmpty();
+    public Map<Integer, Job> getRunningJobs() {
+        return runningJobs;
     }
 
-    public boolean allocateCPU(int requiredCPUs) {
-        if (requiredCPUs <= cpuAvailable) {
-            cpuAvailable -= requiredCPUs;
-            return true;
-        }
-        return false;
+    public Queue<Job> getWaitingQueue() {
+        return waitingQueue;
     }
 
-    public void releaseCPU(int releasedCPUs) {
-        cpuAvailable = Math.min(cpuAvailable + releasedCPUs, numOfCPUs);
+    public PriorityQueue<Job> getEventQueue() {
+        return eventQueue;
+    }
+
+    public void releaseCPU(int num) {
+        this.cpuAvailable += num;
+    }
+    public void allocateCPU(int num) {
+        this.cpuAvailable -= num;
     }
 
     public int getNumOfCPUs() { return numOfCPUs; }
@@ -71,7 +74,6 @@ public class Cluster {
                 ", executionCostPerMin=" + executionCostPerMin +
                 ", bandwidth=" + bandwidth +
                 ", processCapability=" + processCapability +
-                ", jobQueueSize=" + jobQueue.size() +
                 '}';
     }
 }
