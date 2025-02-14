@@ -34,6 +34,9 @@ public class Cluster {
     public void addToWaitingQueue(Job job) {
         waitingQueue.add(job);
     }
+    public void addToRunningQueue(Job job, int currentTime) {
+        this.runningJobs.put(currentTime + job.getDuration(), job);
+    }
 
     public Map<Integer, Job> getRunningJobs() {
         return runningJobs;

@@ -7,14 +7,18 @@ public class Job implements Comparable<Job> {
     private int elapsedTime;
     private int arrivalTime;
     private final double dataLoad;
+    private int maxWaitTime;
+    private int actualWaitTime;
 
-    public Job(int jobID, int duration, int resourceRequirement, int arrivalTime, double dataLoad) {
+    public Job(int jobID, int duration, int resourceRequirement, int arrivalTime, double dataLoad, int maxWaitTime, int actualWaitTime) {
         this.jobID = jobID;
         this.duration = duration;
         this.resourceRequirement = resourceRequirement;
         this.elapsedTime = 0;
         this.arrivalTime = arrivalTime;
         this.dataLoad = dataLoad;
+        this.maxWaitTime = maxWaitTime;
+        this.actualWaitTime = 0;
     }
 
     public int getJobID() {
@@ -54,6 +58,20 @@ public class Job implements Comparable<Job> {
         return dataLoad;
     }
 
+    public int getMaxWaitTime() {
+        return maxWaitTime;
+    }
+    public void setMaxWaitTime(int maxWaitTime) {
+        this.maxWaitTime = maxWaitTime;
+    }
+
+    public int getActualWaitTime() {
+        return actualWaitTime;
+    }
+    public void setActualWaitTime(int actualWaitTime) {
+        this.actualWaitTime = actualWaitTime;
+    }
+
     @Override
     public int compareTo(Job other) {
         return Integer.compare(this.arrivalTime, other.arrivalTime);
@@ -68,6 +86,7 @@ public class Job implements Comparable<Job> {
                 ", elapsedTime=" + elapsedTime +
                 ", arrivalTime=" + arrivalTime +
                 ", dataLoad=" + dataLoad +
+                ", waitTime=" + maxWaitTime +
                 '}';
     }
 }

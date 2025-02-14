@@ -40,9 +40,11 @@ public class ClusterManager {
     private void handleJobArrival(Job job) {
         System.out.println("Job " + job.getJobID() + " has arrived at tick " + currentTime + ", requiring " + job.getResourceRequirement() + " CPUs for " + job.getDuration() + " ticks.");
         if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
+            job.setActualWaitTime(0);
             System.out.println("Decision: Job " + job.getJobID() + " can run immediately.");
             startJob(job);
         } else {
+            job.setActualWaitTime(-1);
             System.out.println("Decision: Job " + job.getJobID() + " has to wait in the queue.");
             clusters.get(0).addToWaitingQueue(job);
         }
@@ -70,17 +72,19 @@ public class ClusterManager {
         while (iterator.hasNext()) {
             Job job = iterator.next();
             if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
+                job.setActualWaitTime(currentTime - job.getArrivalTime());
+                System.out.println("Job " + job.getJobID() + "pre-computed waitTime = " + job.getMaxWaitTime() + ". Actual wait time = " + job.getActualWaitTime());
                 System.out.println("Job " + job.getJobID() + " from waiting queue is now able to run.");
                 startJob(job);
                 iterator.remove();
             } else {
-                break; // If the first waiting job can't be scheduled, others won't be either
+                break;
             }
         }
     }
 
     private void startJob(Job job) {
-        clusters.get(0).getRunningJobs().put(currentTime + job.getDuration(), job);
+        clusters.get(0).addToRunningQueue(job, currentTime);
         clusters.get(0).allocateCPU(job.getResourceRequirement());
     }
 
@@ -137,6 +141,8 @@ public class ClusterManager {
         }
 
         ClusterManager manager = new ClusterManager(clusters);
+        Cluster local = clusters.get(0);
+        Cluster remote = clusters.get(1);
 
         // 2. data loading and pre-processing with a desired sample dataset size.
         Scanner scanner = new Scanner(System.in);
@@ -204,15 +210,11 @@ public class ClusterManager {
 
                 int rand = manager.getX();
                 double dataLoad = durationInTicks * resourceRequirement * GBperTick + rand;
-                Job job = new Job(entryCount, durationInTicks, resourceRequirement, arrivalTime, dataLoad);
+                int waitTime = durationInTicks * resourceRequirement;
+                int actualWaitTime = 0;
+                Job job = new Job(entryCount, durationInTicks, resourceRequirement, arrivalTime, dataLoad, waitTime, actualWaitTime);
                 manager.jobs.add(job);
-//
-//                System.out.println("Entry " + (++entryCount) + ":");
-//                System.out.println("Duration: " + values[durationIdx].trim());
-//                System.out.println("GPU Num: " + values[gpuIdx].trim());
-//                System.out.println("CPU Num: " + values[cpuIdx].trim());
-//                System.out.println("Submit Time: " + values[submitTimeIdx].trim());
-//                System.out.println("---------------------------");
+
                 entryCount ++;
             }
 
@@ -227,33 +229,9 @@ public class ClusterManager {
         // at this point, my Jobs have un-translated durations in terms of simulation tick.
         System.out.println(manager.jobs);
 
-        // TODO: turn off scale down job's duration if long jobs is the majority
-//        // 3.1 examining resolution. (1:1 or 1:60 in terms of time translation)
-//        int longJobCount = 0;
-//        for (Job job : manager.jobs) {
-//            if (job.getDuration() > 60) {
-//                longJobCount++;
-//            }
-//        }
-//
-//        double longJobRadio = (double) longJobCount / manager.jobs.size();
-//
-//        if (longJobRadio > ClusterManager.jobClassificationThreshold) {
-//            System.out.println("long jobs wins!");
-//            tickDurationSeconds = 60; //long jobs are majority
-//            // update job class's duration and arrivalTime with the correct resolution
-//            for (Job job : manager.jobs) {
-//                job.setDuration((int) Math.ceil(job.getDuration() / (double)tickDurationSeconds));
-//                job.setArrivalTime((int) Math.ceil(job.getArrivalTime() / (double)tickDurationSeconds));
-//            }
-//
-//        } else {
-//            tickDurationSeconds = 1; // short jobs are majority, no need to update jobs
-//
-//        }
-        Cluster cluster = clusters.get(0);
+
         for (Job job : manager.jobs) {
-            cluster.addJob(job);
+            local.addJob(job);
         }
 //        System.out.println("Event Queue initialized with jobs: " + cluster.getEventQueue());
 
