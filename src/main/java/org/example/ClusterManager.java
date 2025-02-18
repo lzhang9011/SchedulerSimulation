@@ -37,79 +37,98 @@ public class ClusterManager {
         return baseEpochSeconds;
     }
 
-    private void handleJobArrival(Job job) {
-        System.out.println("Job " + job.getJobID() + " has arrived at tick " + currentTime + ", requiring " + job.getResourceRequirement() + " CPUs for " + job.getDuration() + " ticks.");
-        if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
-            job.setActualWaitTime(0);
-            System.out.println("Decision: Job " + job.getJobID() + " can run immediately.");
-            startJob(job);
-        } else {
-            job.setActualWaitTime(-1);
-            System.out.println("Decision: Job " + job.getJobID() + " has to wait in the queue.");
-            clusters.get(0).addToWaitingQueue(job);
-        }
-        printSystemStatus();
-    }
+//    private void handleJobArrival(Job job) {
+//        System.out.println("Job " + job.getJobID() + " has arrived at tick " + currentTime + ", requiring " + job.getResourceRequirement() + " CPUs for " + job.getDuration() + " ticks.");
+//        if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
+//            job.setCurrentWaitTime(0);
+//            System.out.println("Decision: Job " + job.getJobID() + " can run immediately.");
+//            startJob(job);
+//        } else {
+//            job.setCurrentWaitTime(-1);
+//            System.out.println("Decision: Job " + job.getJobID() + " has to wait in the queue.");
+//            clusters.get(0).addToWaitingQueue(job);
+//        }
+//        printSystemStatus();
+//    }
+//
+//    private void handleJobCompletion() {
+//        Iterator<Map.Entry<Integer, Job>> iterator = clusters.get(0).getRunningJobs().entrySet().iterator();
+//        while (iterator.hasNext()) {
+//            Map.Entry<Integer, Job> entry = iterator.next();
+//            int endTime = entry.getKey();
+//            Job job = entry.getValue();
+//
+//            if (currentTime == endTime) {
+//                System.out.println("Job " + job.getJobID() + " has completed at tick " + currentTime + ", releasing " + job.getResourceRequirement() + " CPUs.");
+//                clusters.get(0).releaseCPU(job.getResourceRequirement());
+//                iterator.remove();
+//                checkWaitingQueue();
+//                printSystemStatus();
+//            }
+//        }
+//    }
+//    private void checkWaitingQueue() {
+//        Iterator<Job> iterator = clusters.get(0).getWaitingQueue().iterator();
+//        while (iterator.hasNext()) {
+//            Job job = iterator.next();
+//            if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
+//                job.setCurrentWaitTime(currentTime - job.getArrivalTime());
+//                System.out.println("Job " + job.getJobID() + "pre-computed waitTime = " + job.getMaxWaitTime() + ". Actual wait time = " + job.getCurrentWaitTime());
+//                System.out.println("Job " + job.getJobID() + " from waiting queue is now able to run.");
+//                startJob(job);
+//                iterator.remove();
+//            } else {
+//                break;
+//            }
+//        }
+//    }
+//
+//    private void startJob(Job job) {
+//        clusters.get(0).addToRunningQueue(job, currentTime);
+//        clusters.get(0).allocateCPU(job.getResourceRequirement());
+//    }
+//
+//    private void printSystemStatus() {
+//        System.out.println("Tick " + currentTime);
+//        System.out.println("Free CPUs: " + clusters.get(0).getCpuAvailable() + ", Busy CPUs: " + (clusters.get(0).getNumOfCPUs() - clusters.get(0).getCpuAvailable()));
+//        System.out.println("Running Jobs: " + clusters.get(0).getRunningJobs().values());
+//        System.out.println("Waiting Queue: " + clusters.get(0).getWaitingQueue());
+//        System.out.println("---------------------------------------------------------");
+//    }
 
-    private void handleJobCompletion() {
-        Iterator<Map.Entry<Integer, Job>> iterator = clusters.get(0).getRunningJobs().entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Job> entry = iterator.next();
-            int endTime = entry.getKey();
-            Job job = entry.getValue();
-
-            if (currentTime == endTime) {
-                System.out.println("Job " + job.getJobID() + " has completed at tick " + currentTime + ", releasing " + job.getResourceRequirement() + " CPUs.");
-                clusters.get(0).releaseCPU(job.getResourceRequirement());
-                iterator.remove();
-                checkWaitingQueue();
-                printSystemStatus();
-            }
-        }
-    }
-    private void checkWaitingQueue() {
-        Iterator<Job> iterator = clusters.get(0).getWaitingQueue().iterator();
-        while (iterator.hasNext()) {
-            Job job = iterator.next();
-            if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
-                job.setActualWaitTime(currentTime - job.getArrivalTime());
-                System.out.println("Job " + job.getJobID() + "pre-computed waitTime = " + job.getMaxWaitTime() + ". Actual wait time = " + job.getActualWaitTime());
-                System.out.println("Job " + job.getJobID() + " from waiting queue is now able to run.");
-                startJob(job);
-                iterator.remove();
-            } else {
-                break;
-            }
-        }
-    }
-
-    private void startJob(Job job) {
-        clusters.get(0).addToRunningQueue(job, currentTime);
-        clusters.get(0).allocateCPU(job.getResourceRequirement());
-    }
-
-    private void printSystemStatus() {
-        System.out.println("Tick " + currentTime);
-        System.out.println("Free CPUs: " + clusters.get(0).getCpuAvailable() + ", Busy CPUs: " + (clusters.get(0).getNumOfCPUs() - clusters.get(0).getCpuAvailable()));
-        System.out.println("Running Jobs: " + clusters.get(0).getRunningJobs().values());
-        System.out.println("Waiting Queue: " + clusters.get(0).getWaitingQueue());
-        System.out.println("---------------------------------------------------------");
-    }
+//    public void runSimulation() {
+//        System.out.println("Simulation started.\n---------------------------------------------------------");
+//        printSystemStatus();
+//
+//        while (!clusters.get(0).getEventQueue().isEmpty() || !clusters.get(0).getRunningJobs().isEmpty()) {
+//            if (!clusters.get(0).getEventQueue().isEmpty()) {
+//                Job job = clusters.get(0).getEventQueue().peek();
+//                if (job.getArrivalTime() == currentTime) {
+//                    clusters.get(0).getEventQueue().poll();
+//                    handleJobArrival(job);
+//                }
+//            }
+//
+//            handleJobCompletion();
+//
+//            currentTime++;
+//        }
+//
+//        System.out.println("\nSimulation complete.");
+//    }
 
     public void runSimulation() {
         System.out.println("Simulation started.\n---------------------------------------------------------");
-        printSystemStatus();
+        Cluster local = clusters.get(0);
+        Cluster remote = clusters.get(1);
 
-        while (!clusters.get(0).getEventQueue().isEmpty() || !clusters.get(0).getRunningJobs().isEmpty()) {
-            if (!clusters.get(0).getEventQueue().isEmpty()) {
-                Job job = clusters.get(0).getEventQueue().peek();
-                if (job.getArrivalTime() == currentTime) {
-                    clusters.get(0).getEventQueue().poll();
-                    handleJobArrival(job);
-                }
-            }
+        while (local.hasPendingJobs() || remote.hasPendingJobs()) {
+            // Handle arrivals and completions in both datacenters
+            local.handleJobArrival(currentTime);
+//            remote.handleJobArrival(currentTime);
 
-            handleJobCompletion();
+            local.handleJobCompletion(currentTime);
+//            remote.handleJobCompletion(currentTime);
 
             currentTime++;
         }
@@ -161,7 +180,6 @@ public class ClusterManager {
         }
         scanner.close();
         File sampleFile = new File("sample" + sampleSize + ".csv");
-        System.out.println("Generating new sample dataset...");
         Loader_CSV.processCSV(inputFile, sampleFile.getName(), sampleSize);
 
         // 3. fill up the job list from the sampled dataset
@@ -212,7 +230,7 @@ public class ClusterManager {
                 double dataLoad = durationInTicks * resourceRequirement * GBperTick + rand;
                 int waitTime = durationInTicks * resourceRequirement;
                 int actualWaitTime = 0;
-                Job job = new Job(entryCount, durationInTicks, resourceRequirement, arrivalTime, dataLoad, waitTime, actualWaitTime);
+                Job job = new Job(entryCount, durationInTicks, resourceRequirement, arrivalTime, dataLoad);
                 manager.jobs.add(job);
 
                 entryCount ++;

@@ -9,11 +9,12 @@ public class Cluster {
     private int storage;
     private int currentTotalData;
     private double executionCostPerMin;
-    private int bandwidth;
+    private int bandwidth = 1;
     private double processCapability; //GB per tick, per CPU.
     private final PriorityQueue<Job> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.getArrivalTime()));
     private final Queue<Job> waitingQueue = new LinkedList<>();
     private final Map<Integer, Job> runningJobs = new HashMap<>();
+    private final List<Job> outgoingQueue = new ArrayList<>();
 
     public Cluster(int numOfCPUs, int regionID, int storage, int currentTotalData,
                    double executionCostPerMin, int bandwidth, double processCapability) {
@@ -65,6 +66,91 @@ public class Cluster {
     public double getExecutionCostPerMin() { return executionCostPerMin; }
     public int getBandwidth() { return bandwidth; }
     public double getProcessCapability() {return processCapability; }
+
+    public boolean hasPendingJobs() {
+        return !eventQueue.isEmpty() || !runningJobs.isEmpty();
+    }
+
+
+    private void handleJobMovingToOutgoingQueue(int currentTime) {
+        Iterator<Job> iterator = waitingQueue.iterator();
+        while (iterator.hasNext()) {
+            Job waitingJob = iterator.next();
+            waitingJob.incrementWaitTime();
+
+            if (waitingJob.getCurrentWaitTime() > waitingJob.getMaxWaitTime()) {
+                System.out.println("Job " + waitingJob.getJobID() + " has exceeded max wait time and is moved to outgoing queue.");
+                outgoingQueue.add(waitingJob);
+                iterator.remove();
+                printSystemStatus(currentTime);
+            }
+        }
+    }
+
+    public void handleJobArrival(int currentTime) {
+        handleJobMovingToOutgoingQueue(currentTime);
+
+        if (!eventQueue.isEmpty() && eventQueue.peek().getArrivalTime() == currentTime) {
+            Job job = eventQueue.poll();
+            System.out.println("Job " + job.getJobID() + " has arrived at tick " + currentTime + ", requiring " + job.getResourceRequirement() + " CPUs for " + job.getDuration() + " ticks.");
+            if (job.getResourceRequirement() <= cpuAvailable) {
+                System.out.println("Decision: Job " + job.getJobID() + " can run immediately.");
+                startJob(job, currentTime);
+            } else {
+                System.out.println("Decision: Job " + job.getJobID() + " has to wait in the queue.");
+                job.setCurrentWaitTime(0);
+                waitingQueue.offer(job);
+            }
+            printSystemStatus(currentTime);
+        }
+    }
+
+    public void handleJobCompletion(int currentTime) {
+        Iterator<Map.Entry<Integer, Job>> iterator = runningJobs.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, Job> entry = iterator.next();
+            int endTime = entry.getKey();
+            Job job = entry.getValue();
+
+            if (currentTime == endTime) {
+                System.out.println("Job " + job.getJobID() + " has completed at tick " + currentTime + ", releasing " + job.getResourceRequirement() + " CPUs.");
+                cpuAvailable += job.getResourceRequirement();
+                iterator.remove();
+                checkWaitingQueue(currentTime);
+                printSystemStatus(currentTime);
+            }
+        }
+    }
+
+    private void checkWaitingQueue(int currentTime) {
+        handleJobMovingToOutgoingQueue(currentTime);
+        Iterator<Job> iterator = waitingQueue.iterator();
+        while (iterator.hasNext()) {
+            Job job = iterator.next();
+
+            if (job.getResourceRequirement() <= cpuAvailable) {
+                System.out.println("Job " + job.getJobID() + " from waiting queue is now able to run.");
+                startJob(job, currentTime);
+                iterator.remove();
+            }
+        }
+    }
+
+    private void startJob(Job job, int currentTime) {
+        System.out.println("Job " + job.getJobID() + " is starting execution after waiting " + job.getCurrentWaitTime() + " ticks.");
+
+        runningJobs.put(currentTime + job.getDuration(), job);
+        cpuAvailable -= job.getResourceRequirement();
+    }
+
+    private void printSystemStatus(int currentTime) {
+        System.out.println("Tick " + currentTime);
+        System.out.println("Free CPUs: " + cpuAvailable + ", Busy CPUs: " + (numOfCPUs - cpuAvailable));
+        System.out.println("Running Tasks: " + runningJobs.values());
+        System.out.println("Waiting Queue: " + waitingQueue);
+        System.out.println("Outgoing Queue: " + outgoingQueue);
+        System.out.println("---------------------------------------------------------");
+    }
 
     @Override
     public String toString() {

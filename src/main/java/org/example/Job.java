@@ -8,17 +8,17 @@ public class Job implements Comparable<Job> {
     private int arrivalTime;
     private final double dataLoad;
     private int maxWaitTime;
-    private int actualWaitTime;
+    private int currentWaitTime;
 
-    public Job(int jobID, int duration, int resourceRequirement, int arrivalTime, double dataLoad, int maxWaitTime, int actualWaitTime) {
+    public Job(int jobID, int duration, int resourceRequirement, int arrivalTime, double dataLoad) {
         this.jobID = jobID;
         this.duration = duration;
         this.resourceRequirement = resourceRequirement;
         this.elapsedTime = 0;
         this.arrivalTime = arrivalTime;
         this.dataLoad = dataLoad;
-        this.maxWaitTime = maxWaitTime;
-        this.actualWaitTime = 0;
+        this.maxWaitTime = 2; // TODO change to Starburst's formula
+        this.currentWaitTime = 0;
     }
 
     public int getJobID() {
@@ -65,12 +65,13 @@ public class Job implements Comparable<Job> {
         this.maxWaitTime = maxWaitTime;
     }
 
-    public int getActualWaitTime() {
-        return actualWaitTime;
+    public int getCurrentWaitTime() {
+        return currentWaitTime;
     }
-    public void setActualWaitTime(int actualWaitTime) {
-        this.actualWaitTime = actualWaitTime;
+    public void setCurrentWaitTime(int currentWaitTime) {
+        this.currentWaitTime = currentWaitTime;
     }
+    public void incrementWaitTime() { this.currentWaitTime++; }
 
     @Override
     public int compareTo(Job other) {
@@ -79,14 +80,6 @@ public class Job implements Comparable<Job> {
 
     @Override
     public String toString() {
-        return "Job{" +
-                "jobID=" + jobID +
-                ", duration=" + duration +
-                ", resourceRequirement=" + resourceRequirement +
-                ", elapsedTime=" + elapsedTime +
-                ", arrivalTime=" + arrivalTime +
-                ", dataLoad=" + dataLoad +
-                ", waitTime=" + maxWaitTime +
-                '}';
+        return "Job " + jobID + " [Arrival: " + arrivalTime + ", Duration: " + duration + ", CPU: " + resourceRequirement + ", Waited: " + currentWaitTime + "/" + maxWaitTime + " ticks]";
     }
 }
