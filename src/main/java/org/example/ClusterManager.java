@@ -2,18 +2,16 @@ package org.example;
 
 import java.io.*;
 import java.util.*;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 public class ClusterManager {
-//    public static final double jobClassificationThreshold = 0.6; // if 60% jobs are short jobs, or if 60% jobs are long jobs.
     public static int tickDurationSeconds = 1; // start with 1:1 resolution
     private int x;
     private static final double GBperTick = 0.05;
 
-    private final String baseTime = "2020-03-18 04:01:39"; //used to compute job's arrival time relative to the baseTime
+    private final String baseTime = "2020-03-18 04:01:39"; // used to compute job's arrival time relative to the baseTime
     private final long baseEpochSeconds;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -25,97 +23,13 @@ public class ClusterManager {
         this.clusters = clusters;
         this.jobs = new ArrayList<>();
         this.x = new Random().nextInt(10) + 1; // random number [1,10]
-
         LocalDateTime dateTime = LocalDateTime.parse(baseTime, formatter);
         this.baseEpochSeconds = dateTime.toEpochSecond(ZoneOffset.UTC);
     }
 
-    public int getX() {
-        return x;
-    }
-    public long getBaseEpochSeconds() {
-        return baseEpochSeconds;
-    }
+    public int getX() { return x; }
 
-//    private void handleJobArrival(Job job) {
-//        System.out.println("Job " + job.getJobID() + " has arrived at tick " + currentTime + ", requiring " + job.getResourceRequirement() + " CPUs for " + job.getDuration() + " ticks.");
-//        if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
-//            job.setCurrentWaitTime(0);
-//            System.out.println("Decision: Job " + job.getJobID() + " can run immediately.");
-//            startJob(job);
-//        } else {
-//            job.setCurrentWaitTime(-1);
-//            System.out.println("Decision: Job " + job.getJobID() + " has to wait in the queue.");
-//            clusters.get(0).addToWaitingQueue(job);
-//        }
-//        printSystemStatus();
-//    }
-//
-//    private void handleJobCompletion() {
-//        Iterator<Map.Entry<Integer, Job>> iterator = clusters.get(0).getRunningJobs().entrySet().iterator();
-//        while (iterator.hasNext()) {
-//            Map.Entry<Integer, Job> entry = iterator.next();
-//            int endTime = entry.getKey();
-//            Job job = entry.getValue();
-//
-//            if (currentTime == endTime) {
-//                System.out.println("Job " + job.getJobID() + " has completed at tick " + currentTime + ", releasing " + job.getResourceRequirement() + " CPUs.");
-//                clusters.get(0).releaseCPU(job.getResourceRequirement());
-//                iterator.remove();
-//                checkWaitingQueue();
-//                printSystemStatus();
-//            }
-//        }
-//    }
-//    private void checkWaitingQueue() {
-//        Iterator<Job> iterator = clusters.get(0).getWaitingQueue().iterator();
-//        while (iterator.hasNext()) {
-//            Job job = iterator.next();
-//            if (job.getResourceRequirement() <= clusters.get(0).getCpuAvailable()) {
-//                job.setCurrentWaitTime(currentTime - job.getArrivalTime());
-//                System.out.println("Job " + job.getJobID() + "pre-computed waitTime = " + job.getMaxWaitTime() + ". Actual wait time = " + job.getCurrentWaitTime());
-//                System.out.println("Job " + job.getJobID() + " from waiting queue is now able to run.");
-//                startJob(job);
-//                iterator.remove();
-//            } else {
-//                break;
-//            }
-//        }
-//    }
-//
-//    private void startJob(Job job) {
-//        clusters.get(0).addToRunningQueue(job, currentTime);
-//        clusters.get(0).allocateCPU(job.getResourceRequirement());
-//    }
-//
-//    private void printSystemStatus() {
-//        System.out.println("Tick " + currentTime);
-//        System.out.println("Free CPUs: " + clusters.get(0).getCpuAvailable() + ", Busy CPUs: " + (clusters.get(0).getNumOfCPUs() - clusters.get(0).getCpuAvailable()));
-//        System.out.println("Running Jobs: " + clusters.get(0).getRunningJobs().values());
-//        System.out.println("Waiting Queue: " + clusters.get(0).getWaitingQueue());
-//        System.out.println("---------------------------------------------------------");
-//    }
-
-//    public void runSimulation() {
-//        System.out.println("Simulation started.\n---------------------------------------------------------");
-//        printSystemStatus();
-//
-//        while (!clusters.get(0).getEventQueue().isEmpty() || !clusters.get(0).getRunningJobs().isEmpty()) {
-//            if (!clusters.get(0).getEventQueue().isEmpty()) {
-//                Job job = clusters.get(0).getEventQueue().peek();
-//                if (job.getArrivalTime() == currentTime) {
-//                    clusters.get(0).getEventQueue().poll();
-//                    handleJobArrival(job);
-//                }
-//            }
-//
-//            handleJobCompletion();
-//
-//            currentTime++;
-//        }
-//
-//        System.out.println("\nSimulation complete.");
-//    }
+    public long getBaseEpochSeconds() { return baseEpochSeconds; }
 
     public void runSimulation() {
         System.out.println("Simulation started.\n---------------------------------------------------------");
@@ -123,28 +37,18 @@ public class ClusterManager {
         Cluster remote = clusters.get(1);
 
         while (local.hasPendingJobs() || remote.hasPendingJobs()) {
-            // Handle arrivals and completions in both datacenters
             local.handleJobArrival(currentTime);
-//            remote.handleJobArrival(currentTime);
-
             local.handleJobCompletion(currentTime);
-//            remote.handleJobCompletion(currentTime);
-
             currentTime++;
         }
 
         System.out.println("\nSimulation complete.");
     }
 
-
-    public static void main(String[] args) {
-
-        // 1.Generate and load clusters.
-        String clusterFile = "clusters.json";
-        String inputFile = "cluster_log.csv";
+    public static List<Cluster> loadOrGenerateClusters(String clusterFile) {
         List<Cluster> clusters;
-
         File file = new File(clusterFile);
+
         if (file.exists()) {
             System.out.println("Loading clusters from JSON...");
             clusters = ClusterGenerator.readClustersFromJson();
@@ -158,31 +62,13 @@ public class ClusterManager {
         for (Cluster cluster : clusters) {
             System.out.println(cluster);
         }
+        return clusters;
+    }
 
-        ClusterManager manager = new ClusterManager(clusters);
-        Cluster local = clusters.get(0);
-        Cluster remote = clusters.get(1);
-
-        // 2. data loading and pre-processing with a desired sample dataset size.
-        Scanner scanner = new Scanner(System.in);
-        int sampleSize;
-        while (true) {
-            System.out.print("Enter a sample size (1-10): ");
-            if (scanner.hasNextInt()) {
-                sampleSize = scanner.nextInt();
-                if (sampleSize >= 1 && sampleSize <= 10) {
-                    break;
-                }
-            } else {
-                scanner.next();
-            }
-            System.out.println("Invalid input. Please enter a number between 1 and 10.");
-        }
-        scanner.close();
+    public void loadJobsFromCSV(String inputFile, int sampleSize) {
         File sampleFile = new File("sample" + sampleSize + ".csv");
         Loader_CSV.processCSV(inputFile, sampleFile.getName(), sampleSize);
 
-        // 3. fill up the job list from the sampled dataset
         try (BufferedReader reader = new BufferedReader(new FileReader(sampleFile))) {
             String headerLine = reader.readLine();
             if (headerLine == null) {
@@ -224,16 +110,11 @@ public class ClusterManager {
                 int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
                 long submitEpochSeconds = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter)
                         .toEpochSecond(ZoneOffset.UTC);
-                int arrivalTime = (int) (submitEpochSeconds - manager.getBaseEpochSeconds());
+                int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
+                double dataLoad = durationInTicks * resourceRequirement * GBperTick + getX();
 
-                int rand = manager.getX();
-                double dataLoad = durationInTicks * resourceRequirement * GBperTick + rand;
-                int waitTime = durationInTicks * resourceRequirement;
-                int actualWaitTime = 0;
-                Job job = new Job(entryCount, durationInTicks, resourceRequirement, arrivalTime, dataLoad);
-                manager.jobs.add(job);
-
-                entryCount ++;
+                Job job = new Job(entryCount++, durationInTicks, resourceRequirement, arrivalTime, dataLoad);
+                jobs.add(job);
             }
 
             if (entryCount == 0) {
@@ -243,20 +124,40 @@ public class ClusterManager {
         } catch (IOException e) {
             System.err.println("Error reading the file: " + e.getMessage());
         }
+    }
 
-        // at this point, my Jobs have un-translated durations in terms of simulation tick.
-        System.out.println(manager.jobs);
+    public static int getSampleSizeFromUser() {
+        Scanner scanner = new Scanner(System.in);
+        int sampleSize;
+        while (true) {
+            System.out.print("Enter a sample size (1-10): ");
+            if (scanner.hasNextInt()) {
+                sampleSize = scanner.nextInt();
+                if (sampleSize >= 1 && sampleSize <= 10) {
+                    break;
+                }
+            } else {
+                scanner.next();
+            }
+            System.out.println("Invalid input. Please enter a number between 1 and 10.");
+        }
+        scanner.close();
+        return sampleSize;
+    }
 
+    public static void main(String[] args) {
+        String clusterFile = "clusters.json";
+        List<Cluster> clusters = loadOrGenerateClusters(clusterFile);
 
+        int sampleSize = getSampleSizeFromUser();
+        ClusterManager manager = new ClusterManager(clusters);
+        manager.loadJobsFromCSV("cluster_log.csv", sampleSize);
+
+        Cluster local = clusters.get(0);
         for (Job job : manager.jobs) {
             local.addJob(job);
         }
-//        System.out.println("Event Queue initialized with jobs: " + cluster.getEventQueue());
 
-        // 5. run the simulation
         manager.runSimulation();
-
-
     }
 }
-
