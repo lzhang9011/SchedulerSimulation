@@ -14,7 +14,7 @@ public class Cluster {
     private final PriorityQueue<Job> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.getArrivalTime()));
     private final Queue<Job> waitingQueue = new LinkedList<>();
     private final Map<Integer, Job> runningJobs = new HashMap<>();
-    private final List<Job> outgoingQueue = new ArrayList<>();
+    private final Queue<Job> outgoingQueue = new LinkedList<>();
 
     public Cluster(int numOfCPUs, int regionID, int storage, int currentTotalData,
                    double executionCostPerMin, int bandwidth, double processCapability) {
@@ -73,6 +73,10 @@ public class Cluster {
 
 
     private void handleJobMovingToOutgoingQueue(int currentTime) {
+//        if (waitingQueue == null || outgoingQueue == null) {
+//            System.err.println("Error: waitingQueue or outgoingQueue is not initialized.");
+//            return;
+//        }
         Iterator<Job> iterator = waitingQueue.iterator();
         while (iterator.hasNext()) {
             Job waitingJob = iterator.next();
