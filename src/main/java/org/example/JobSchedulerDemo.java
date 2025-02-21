@@ -65,7 +65,6 @@ class Datacenter {
 
     // traverse waitingTask queue, increment by 1 for all waiting tasks.  if any task has exceeded max wait time, move to outgoing Queue.
     public void moveTaskToTracker(int currentTime) {
-        System.out.println("Tick in moveTaskToTracker" + currentTime);
 
         Iterator<Task> iterator = waitingQueue.iterator();
         while (iterator.hasNext()) {
@@ -77,13 +76,11 @@ class Datacenter {
 //                outgoingQueue.add(waitingTask);
                 transferProgressTracker.put(waitingTask.id, 0); // then as soon as it was put into the transfer list, 1 portion of the job get transferred.
                 iterator.remove();
-                printSystemStatus(currentTime);
             }
         }
     }
 
     public void updateTransferProgress(int currentTime) {
-        System.out.println("Tick in updateTransferProgress" + currentTime);
 
         if (transferProgressTracker.isEmpty()) return;
 
@@ -93,16 +90,13 @@ class Datacenter {
             int taskId = entry.getKey();
             int progress = entry.getValue();
 
-
+            if (progress == 5) {
+                System.out.println("✅ Transfer complete for Task " + taskId + " at tick " + currentTime + ".");
+                iterator.remove(); // ✅ Remove completed transfers
+            }
             if (progress < 5) {
                 transferProgressTracker.put(taskId, progress + 1);
                 System.out.println("Transfer Progress: Task " + taskId + " is at " + (progress + 1) + "/5." + " current time is " + currentTime);
-                printSystemStatus(currentTime);
-
-            } else {
-                System.out.println("✅ Transfer complete for Task " + taskId + " at tick " + currentTime + ".");
-                iterator.remove(); // ✅ Remove completed transfers
-                printSystemStatus(currentTime);
             }
         }
     }
@@ -110,7 +104,6 @@ class Datacenter {
 
 
     public void handleTaskArrival(int currentTime) {
-        System.out.println("Tick in handleTaskArrival" + currentTime);
 
 
         if (!eventQueue.isEmpty() && eventQueue.peek().arrivalTime == currentTime) {
@@ -124,11 +117,9 @@ class Datacenter {
                 task.currentWaitTime = 0;
                 waitingQueue.offer(task);
             }
-            printSystemStatus(currentTime);
         }
     }
     public void handleTaskCompletion(int currentTime) {
-        System.out.println("Tick in handleTaskCompletion" + currentTime);
 
         Iterator<Map.Entry<Task, Integer>> iterator = runningTasks.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -141,7 +132,6 @@ class Datacenter {
                 availableCPUs += task.cpuRequirement;
                 iterator.remove();
                 checkWaitingQueue(currentTime);
-                printSystemStatus(currentTime);
             }
         }
     }
@@ -166,8 +156,7 @@ class Datacenter {
         availableCPUs -= task.cpuRequirement;
     }
 
-    private void printSystemStatus(int currentTime) {
-//        System.out.println("Tick " + currentTime);
+    public void printSystemStatus(int currentTime) {
         System.out.println("Free CPUs: " + availableCPUs + ", Busy CPUs: " + (totalCPUs - availableCPUs));
         for (Map.Entry<Task, Integer> entry : runningTasks.entrySet()) {
             Task task = entry.getKey();
@@ -175,7 +164,6 @@ class Datacenter {
             System.out.println("Running List: Task " + task.id + " with End Time of: " + endTime);
         }
         System.out.println("Waiting Queue: " + waitingQueue);
-//        System.out.println("Outgoing Queue: " + outgoingQueue);
         System.out.println("Transfer Progress: " + transferProgressTracker);
         System.out.println("---------------------------------------------------------");
     }
@@ -195,10 +183,12 @@ class Scheduler {
         System.out.println("Simulation started.\n---------------------------------------------------------");
 
         while (localDatacenter.hasPendingTasks() || !localDatacenter.isTransferComplete()) {
+            System.out.println("Current Time is: " + currentTime);
+            localDatacenter.updateTransferProgress(currentTime);// increment task transfer by 1 portion
             localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
             localDatacenter.handleTaskArrival(currentTime);
             localDatacenter.handleTaskCompletion(currentTime);
-            localDatacenter.updateTransferProgress(currentTime);
+            localDatacenter.printSystemStatus(currentTime);
             currentTime++;
         }
 
