@@ -68,12 +68,17 @@ class Task {
 }
 
 class Datacenter {
-    private final int totalCPUs = 16;
-    private int availableCPUs = totalCPUs;
+    private final int totalCPUs;
+    private int availableCPUs;
     private final PriorityQueue<Task> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.arrivalTime));
     private final Queue<Task> waitingQueue = new LinkedList<>();
     private final Map<Task, Integer> runningTasks = new HashMap<>();
     private final Map<Task, TransferInfo> transferProgressTracker = new HashMap<>();
+
+    public Datacenter(int totalCPUs) {
+        this.totalCPUs = totalCPUs;
+        this.availableCPUs = totalCPUs;
+    }
 
     public void addTask(Task task) {
         eventQueue.offer(task);
@@ -164,7 +169,7 @@ class Datacenter {
             Task task = entry.getKey();
 
             if (currentTime == endTime) {
-                System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs.");
+                System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs. Progress: 100.00% (" + task.dataLoad + "/" + task.dataLoad + ")");
                 availableCPUs += task.cpuRequirement;
                 iterator.remove();
                 checkWaitingQueue(currentTime);
@@ -186,19 +191,29 @@ class Datacenter {
     }
 
     private void startTask(Task task, int currentTime) {
-        System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks.");
+        System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks and the transferTime is " + task.transferCompletionTime);
 
         runningTasks.put(task, currentTime + task.duration);
         availableCPUs -= task.cpuRequirement;
     }
 
     public void printSystemStatus(int currentTime) {
+
         System.out.println("Free CPUs: " + availableCPUs + ", Busy CPUs: " + (totalCPUs - availableCPUs));
+
         for (Map.Entry<Task, Integer> entry : runningTasks.entrySet()) {
             Task task = entry.getKey();
             int endTime = entry.getValue();
-            System.out.println("Running List: Task " + task.id + " with End Time of: " + endTime);
+
+            int timeElapsed = currentTime - task.arrivalTime; // Time since the task started
+            double progress = (double) timeElapsed / task.duration; // Progress ratio
+
+            progress = Math.max(0, Math.min(progress, 1));
+
+            System.out.printf("Running List: Task %d with End Time of: %d | Progress: %.2f%% (%d/%d ticks)\n",
+                    task.id, endTime, progress * 100, timeElapsed, task.duration);
         }
+
         System.out.println("Waiting Queue: " + waitingQueue);
         System.out.println("Transfer List: ");
         if (transferProgressTracker.isEmpty()) {
@@ -217,8 +232,8 @@ class Datacenter {
 }
 
 class Scheduler {
-    private final Datacenter localDatacenter = new Datacenter();
-    private final Datacenter remoteDatacenter = new Datacenter();
+    private final Datacenter localDatacenter = new Datacenter(16);
+    private final Datacenter remoteDatacenter = new Datacenter(64);
     private int currentTime = 0;
     private int bandwidth = 1;
 
@@ -230,7 +245,7 @@ class Scheduler {
     public void runSimulation() {
         System.out.println("Simulation started.\n---------------------------------------------------------");
 
-        while (localDatacenter.hasPendingTasks() || !localDatacenter.isTransferComplete()) {
+        while (localDatacenter.hasPendingTasks() || !localDatacenter.isTransferComplete() || remoteDatacenter.hasPendingTasks() || !remoteDatacenter.isTransferComplete()) {
             System.out.println("Current Time is: " + currentTime);
             List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
             for (Task task : completedTransfers) {
@@ -238,15 +253,27 @@ class Scheduler {
                 remoteDatacenter.addTask(task);
                 System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
             }
-
             localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
             localDatacenter.handleTaskArrival(currentTime);
             localDatacenter.handleTaskCompletion(currentTime);
             localDatacenter.printSystemStatus(currentTime);
+
+
+            remoteDatacenter.handleTaskArrival(currentTime);
+            remoteDatacenter.handleTaskCompletion(currentTime);
+            remoteDatacenter.printSystemStatus(currentTime);
+
+
+
+
             currentTime++;
         }
 
         System.out.println(remoteDatacenter.getEventQueue());
+
+
+
+
         System.out.println("\nSimulation complete.");
     }
 
