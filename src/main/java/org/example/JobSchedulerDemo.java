@@ -22,7 +22,9 @@ class Task {
         this.currentWaitTime = 0;
     }
 
-
+    public int getId() {
+        return this.id;
+    }
     public int getMaxWaitTime() {
         return maxWaitTime;
     }
@@ -48,8 +50,7 @@ class Datacenter {
     private final PriorityQueue<Task> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.arrivalTime));
     private final Queue<Task> waitingQueue = new LinkedList<>();
     private final Map<Task, Integer> runningTasks = new HashMap<>();
-//    private final List<Task> outgoingQueue = new ArrayList<>();
-    private final Map<Integer, Integer> transferProgressTracker = new HashMap<>();
+    private final Map<Task, Integer> transferProgressTracker = new HashMap<>();
 
 
     public void addTask(Task task) {
@@ -74,31 +75,36 @@ class Datacenter {
             if (waitingTask.currentWaitTime > waitingTask.getMaxWaitTime()) {
                 System.out.println("Task " + waitingTask.id + " has exceeded max wait time and is moved to outgoing queue.");
 //                outgoingQueue.add(waitingTask);
-                transferProgressTracker.put(waitingTask.id, 0); // then as soon as it was put into the transfer list, 1 portion of the job get transferred.
+                transferProgressTracker.put(waitingTask, 0); // then as soon as it was put into the transfer list, 1 portion of the job get transferred.
                 iterator.remove();
             }
         }
     }
 
-    public void updateTransferProgress(int currentTime) {
+    public List<Task> updateTransferProgress(int currentTime) {
+        List<Task> completedTransfers = new ArrayList<>();
 
-        if (transferProgressTracker.isEmpty()) return;
+        if (transferProgressTracker.isEmpty()) return completedTransfers;
 
-        Iterator<Map.Entry<Integer, Integer>> iterator = transferProgressTracker.entrySet().iterator();
+        Iterator<Map.Entry<Task, Integer>> iterator = transferProgressTracker.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<Integer, Integer> entry = iterator.next();
-            int taskId = entry.getKey();
+            Map.Entry<Task, Integer> entry = iterator.next();
+            Task transferTask = entry.getKey();
             int progress = entry.getValue();
+            int dataLoad = transferTask.dataLoad;
 
-            if (progress == 5) {
-                System.out.println("✅ Transfer complete for Task " + taskId + " at tick " + currentTime + ".");
+
+
+            if (progress == dataLoad) {
+                System.out.println("✅ Transfer complete for Task " + transferTask.id + " at tick " + currentTime + ".");
+                completedTransfers.add(transferTask);
                 iterator.remove(); // ✅ Remove completed transfers
-            }
-            if (progress < 5) {
-                transferProgressTracker.put(taskId, progress + 1);
-                System.out.println("Transfer Progress: Task " + taskId + " is at " + (progress + 1) + "/5." + " current time is " + currentTime);
+            } else {
+                transferProgressTracker.put(transferTask, progress + 1);
+                System.out.println("Transfer Progress: Task " + transferTask.id + " is at " + (progress + 1) + "/" + dataLoad + " current time is " + currentTime);
             }
         }
+        return completedTransfers;
     }
 
 
@@ -164,7 +170,11 @@ class Datacenter {
             System.out.println("Running List: Task " + task.id + " with End Time of: " + endTime);
         }
         System.out.println("Waiting Queue: " + waitingQueue);
-        System.out.println("Transfer Progress: " + transferProgressTracker);
+        System.out.println("Transfer List: ");
+        for (Map.Entry<Task, Integer> entry : transferProgressTracker.entrySet()) {
+            System.out.println(entry.getKey().getId() + " : " + entry.getValue());
+        }
+
         System.out.println("---------------------------------------------------------");
     }
 }
@@ -173,9 +183,10 @@ class Scheduler {
     private final Datacenter localDatacenter = new Datacenter();
     private final Datacenter remoteDatacenter = new Datacenter();
     private int currentTime = 0;
+    private List<Task> taskList = new ArrayList<>();
 
     public void addTask(Task task) {
-        // add task to localDatacenter's eventQueue.
+        // scheduler's addTask is to localDatacenter's eventQueue. This is the very INITIAL add task.
         localDatacenter.addTask(task);
     }
 
@@ -184,7 +195,12 @@ class Scheduler {
 
         while (localDatacenter.hasPendingTasks() || !localDatacenter.isTransferComplete()) {
             System.out.println("Current Time is: " + currentTime);
-            localDatacenter.updateTransferProgress(currentTime);// increment task transfer by 1 portion
+            List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime);
+            for (Task task : completedTransfers) {
+                remoteDatacenter.addTask(task);
+                System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
+            }
+
             localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
             localDatacenter.handleTaskArrival(currentTime);
             localDatacenter.handleTaskCompletion(currentTime);
@@ -200,11 +216,14 @@ class Scheduler {
 public class JobSchedulerDemo {
     public static void main(String[] args) {
         Scheduler scheduler = new Scheduler();
+        Task task1 = new Task(1,1,5,8,2);
+        Task task2 = new Task(2,2,2,12,4);
+        Task task3 = new Task(3,3,2,12,1);
 
-        scheduler.addTask(new Task(1, 1, 5, 8, 2));
-        scheduler.addTask(new Task(2, 2, 2, 12,4));
-//        scheduler.addTask(new Task(3, 3, 2, 12,1));
-//        scheduler.addTask(new Task(4, 4, 2, 12,2));
+        //add to local datacenter's eventQueue.
+        scheduler.addTask(task1);
+        scheduler.addTask(task2);
+        scheduler.addTask(task3);
 
         scheduler.runSimulation();
     }
