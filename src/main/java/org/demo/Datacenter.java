@@ -1,71 +1,6 @@
-package org.example;
+package org.demo;
 
 import java.util.*;
-
-class TransferInfo {
-    int progress;
-    int startTick;
-
-    public TransferInfo(int startTick) {
-        this.progress = 0;
-        this.startTick = startTick;
-    }
-}
-
-class Task {
-    int id;
-    int arrivalTime;
-    int duration;
-    int cpuRequirement;
-    int dataLoad;
-    int maxWaitTime;
-    int currentWaitTime;
-    int transferCompletionTime;
-
-    public Task(int id, int arrivalTime, int duration, int cpuRequirement, int dataLoad) {
-        this.id = id;
-        this.arrivalTime = arrivalTime;
-        this.duration = duration;
-        this.cpuRequirement = cpuRequirement;
-        this.dataLoad = dataLoad;
-//        this.maxWaitTime = duration * cpuRequirement;
-        this.maxWaitTime = 2;
-        this.currentWaitTime = 0;
-        this.transferCompletionTime = 0;
-
-    }
-
-
-    public int getId() {
-        return this.id;
-    }
-    public int getMaxWaitTime() {
-        return maxWaitTime;
-    }
-
-    public void incrementWaitTime() {
-        this.currentWaitTime++;
-    }
-
-    public int getTransferCompletionTime(){
-        return this.transferCompletionTime;
-    }
-    public void setTransferCompletionTime(int transferCompletionTime){
-        this.transferCompletionTime = transferCompletionTime;
-    }
-
-    public void setArrivalTime(int arrivalTime){
-        this.arrivalTime = arrivalTime;
-    }
-    @Override
-    public String toString() {
-        return "Task " + id + " [Arrival: " + arrivalTime
-                + ", Duration: " + duration
-                + ", CPU: " + cpuRequirement
-                + ", DataLoad: " + dataLoad
-                + ", Waited: " + currentWaitTime + "/" + maxWaitTime + " ticks]";
-    }
-}
 
 class Datacenter {
     private final int totalCPUs;
@@ -116,7 +51,6 @@ class Datacenter {
         List<Task> completedTransfers = new ArrayList<>();
 
         if (transferProgressTracker.isEmpty()) return completedTransfers;
-        int currentJobsInTransfer = transferProgressTracker.size();
 
         Iterator<Map.Entry<Task, TransferInfo>> iterator = transferProgressTracker.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -144,15 +78,14 @@ class Datacenter {
 
 
 
-    public void handleTaskArrival(int currentTime) {
-
+    public void handleTaskArrival(int currentTime, TaskMilestone milestoneTracker) {
 
         if (!eventQueue.isEmpty() && eventQueue.peek().arrivalTime == currentTime) {
             Task task = eventQueue.poll();
             System.out.println("Task " + task.id + " has arrived at tick " + currentTime + ", requiring " + task.cpuRequirement + " CPUs for " + task.duration + " ticks.");
             if (task.cpuRequirement <= availableCPUs) {
                 System.out.println("Decision: Task " + task.id + " can run immediately.");
-                startTask(task, currentTime);
+                startTask(task, currentTime, milestoneTracker);
             } else {
                 System.out.println("Decision: Task " + task.id + " has to wait in the queue.");
                 task.currentWaitTime = 0;
@@ -160,37 +93,38 @@ class Datacenter {
             }
         }
     }
-    public void handleTaskCompletion(int currentTime) {
-
+    public void handleTaskCompletion(int currentTime, TaskMilestone milestoneTracker) {
         Iterator<Map.Entry<Task, Integer>> iterator = runningTasks.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Task, Integer> entry = iterator.next();
             int endTime = entry.getValue();
             Task task = entry.getKey();
-
             if (currentTime == endTime) {
+                task.setCompletionTimeStamp(currentTime);
                 System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs. Progress: 100.00% (" + task.dataLoad + "/" + task.dataLoad + ")");
+
                 availableCPUs += task.cpuRequirement;
                 iterator.remove();
-                checkWaitingQueue(currentTime);
+                checkWaitingQueue(currentTime, milestoneTracker);
             }
         }
     }
 
-    private void checkWaitingQueue(int currentTime) {
+    private void checkWaitingQueue(int currentTime, TaskMilestone milestoneTracker) {
         Iterator<Task> iterator = waitingQueue.iterator();
         while (iterator.hasNext()) {
             Task task = iterator.next();
 
             if (task.cpuRequirement <= availableCPUs) {
                 System.out.println("Task " + task.id + " from waiting queue is now able to run.");
-                startTask(task, currentTime);
+                startTask(task, currentTime, milestoneTracker);
                 iterator.remove();
             }
         }
     }
 
-    private void startTask(Task task, int currentTime) {
+    private void startTask(Task task, int currentTime, TaskMilestone milestoneTracker) {
+
         System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks and the transferTime is " + task.transferCompletionTime);
 
         runningTasks.put(task, currentTime + task.duration);
@@ -228,69 +162,5 @@ class Datacenter {
         }
 
         System.out.println("---------------------------------------------------------");
-    }
-}
-
-class Scheduler {
-    private final Datacenter localDatacenter = new Datacenter(16);
-    private final Datacenter remoteDatacenter = new Datacenter(64);
-    private int currentTime = 0;
-    private int bandwidth = 1;
-
-    public void addTask(Task task) {
-        // scheduler's addTask is to localDatacenter's eventQueue. This is the very INITIAL add task.
-        localDatacenter.addTask(task);
-    }
-
-    public void runSimulation() {
-        System.out.println("Simulation started.\n---------------------------------------------------------");
-
-        while (localDatacenter.hasPendingTasks() || !localDatacenter.isTransferComplete() || remoteDatacenter.hasPendingTasks() || !remoteDatacenter.isTransferComplete()) {
-            System.out.println("Current Time is: " + currentTime);
-            List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
-            for (Task task : completedTransfers) {
-                task.setArrivalTime(currentTime);
-                remoteDatacenter.addTask(task);
-                System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
-            }
-            localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
-            localDatacenter.handleTaskArrival(currentTime);
-            localDatacenter.handleTaskCompletion(currentTime);
-            localDatacenter.printSystemStatus(currentTime);
-
-
-            remoteDatacenter.handleTaskArrival(currentTime);
-            remoteDatacenter.handleTaskCompletion(currentTime);
-            remoteDatacenter.printSystemStatus(currentTime);
-
-
-
-
-            currentTime++;
-        }
-
-        System.out.println(remoteDatacenter.getEventQueue());
-
-
-
-
-        System.out.println("\nSimulation complete.");
-    }
-
-}
-
-public class JobSchedulerDemo {
-    public static void main(String[] args) {
-        Scheduler scheduler = new Scheduler();
-        Task task1 = new Task(1,1,5,8,2);
-        Task task2 = new Task(2,2,2,12,4);
-//        Task task3 = new Task(3,3,2,12,1);
-
-        //add to local datacenter's eventQueue.
-        scheduler.addTask(task1);
-        scheduler.addTask(task2);
-//        scheduler.addTask(task3);
-
-        scheduler.runSimulation();
     }
 }
