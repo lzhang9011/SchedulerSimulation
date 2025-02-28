@@ -8,7 +8,7 @@ class Scheduler {
     private final Datacenter remoteDatacenter = new Datacenter(64);
     private final TaskMilestone milestoneTracker = new TaskMilestone();
     private int currentTime = 0;
-    private int bandwidth = 1;
+    private final int bandwidth = 100;
     private List<Task> tasksEverExisted = new ArrayList<>();
 
     public void addTask(Task task) {
@@ -25,8 +25,7 @@ class Scheduler {
             System.out.println("Current Time is: " + currentTime);
             List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
             for (Task task : completedTransfers) {
-                task.setArrivalTime(currentTime);
-//                milestoneTracker.recordMilestone(task, currentTime, true);
+                task.setArrivalTime(currentTime); // update transferred task's arrival time
                 remoteDatacenter.addTask(task);
                 System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
             }
@@ -49,19 +48,22 @@ class Scheduler {
 
         // recording milestones of tasks
         for (Task task : tasksEverExisted) {
-            if (task.getOriginalArrivalTime() + task.getMaxWaitTime() >= currentTime) {
-                milestoneTracker.recordMilestone(task, task.getArrivalTime(), false);
+            if (task.getOriginalArrivalTime() == task.getArrivalTime()) {
+                milestoneTracker.recordMilestone(task, task.getArrivalTime(), false, 0);
             } else {
                 // remote task milestone tracking:
-                milestoneTracker.recordMilestone(task, task.getArrivalTime(), true);
+                milestoneTracker.recordMilestone(task, task.getArrivalTime(), true, task.getDataLoad());
             }
         }
 
 
-        // Write milestones to CSV
-        milestoneTracker.writeToCSV("task_milestones.csv");
-        System.out.println(remoteDatacenter.getEventQueue());
+//        // Write full milestones to CSV
+        milestoneTracker.writeToCSVFull("task_milestonesFull.csv");
 
+        // Write Data Transferred & Total Completion Time (considering transfer time cost) ONLY to CSV
+//        milestoneTracker.writeToCSVImportant("task_milestonesImportant.csv");
+
+        System.out.println(remoteDatacenter.getEventQueue());
         System.out.println("\nSimulation complete.");
     }
 

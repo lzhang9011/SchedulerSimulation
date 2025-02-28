@@ -1,5 +1,8 @@
 package org.demo;
 
+import java.util.HashMap;
+import java.util.Map;
+
 class Task {
     int id;
     int arrivalTime;
@@ -9,8 +12,12 @@ class Task {
     int dataLoad;
     int maxWaitTime;
     int currentWaitTime;
-    int transferCompletionTime;
+    int transferCompletionTime; // how long it took to transfer
     int completionTimeStamp;
+    int transferStartTick;
+
+    int ticksElapsedSinceTransferStarted;
+    int dataTransferred;
 
 
     public Task(int id, int arrivalTime, int duration, int cpuRequirement, int dataLoad) {
@@ -25,7 +32,10 @@ class Task {
         this.currentWaitTime = 0;
         this.transferCompletionTime = 0;
         this.completionTimeStamp = -1;
+        this.transferStartTick = 0;
 
+        this.ticksElapsedSinceTransferStarted = 0;
+        this.dataTransferred = 0;
     }
 
 
@@ -36,6 +46,7 @@ class Task {
     public int getDuration() {
         return duration;
     }
+    public int getDataLoad() {return dataLoad; }
     public int getMaxWaitTime() {
         return maxWaitTime;
     }
@@ -68,6 +79,26 @@ class Task {
     public void setCompletionTimeStamp(int completionTimeStamp) {
         this.completionTimeStamp = completionTimeStamp;
     }
+
+    public int getTicksElapsedSinceTransferStarted() {
+        return this.ticksElapsedSinceTransferStarted;
+    }
+    public void incrementTicksElapsedSinceTransferStarted() {
+        this.ticksElapsedSinceTransferStarted++;
+    }
+
+    public int getDataTransferred() {
+        return this.dataTransferred;
+    }
+
+    public void incrementDataTransferred(int dataTransferred) {
+        this.dataTransferred += dataTransferred;
+    }
+
+    public void setDataTransferred(int dataTransferred) {
+        this.dataTransferred = dataTransferred;
+    }
+
     @Override
     public String toString() {
         return "Task " + id + " [Arrival: " + arrivalTime

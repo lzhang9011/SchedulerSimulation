@@ -1,0 +1,6 @@
+task_id,original_arrival_time,eventual_arrival_time,transferred,actual_completion_time,original_duration,actual_duration, data_transferred, transfer_completion_time
+1,1,1,false,6,5,5,0,0
+2,2,2,false,3,1,1,0,0
+3,3,21,true,23,2,20,1000,15
+4,4,4,false,8,2,4,0,0
+5,5,18,true,20,2,15,500,10
