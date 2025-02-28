@@ -3,6 +3,7 @@ package org.demo;
 import java.util.*;
 
 class Datacenter {
+    private final int id;
     private final int totalCPUs;
     private int availableCPUs;
     private final PriorityQueue<Task> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.arrivalTime));
@@ -10,7 +11,8 @@ class Datacenter {
     private final Map<Task, Integer> runningTasks = new HashMap<>();
     private final List<Task> transferTasks = new ArrayList<>();
 
-    public Datacenter(int totalCPUs) {
+    public Datacenter(int id, int totalCPUs) {
+        this.id = id;
         this.totalCPUs = totalCPUs;
         this.availableCPUs = totalCPUs;
     }
@@ -49,13 +51,13 @@ class Datacenter {
         }
     }
 
-    public List<Task> updateTransferProgress(int currentTime, int bandwidth) {
+    public List<Task> updateTransferProgress(int currentTime, double bandwidth) {
         List<Task> completedTransfers = new ArrayList<>();
 
         if (transferTasks.isEmpty()) return completedTransfers;
 
         int activeTaskCount = transferTasks.size();
-        int bandwidthPerTask = bandwidth / activeTaskCount;
+        double bandwidthPerTask = bandwidth / activeTaskCount;
 
         Iterator<Task> iterator = transferTasks.iterator();
         while (iterator.hasNext()) {
@@ -166,4 +168,10 @@ class Datacenter {
 
         System.out.println("---------------------------------------------------------");
     }
+
+    @Override
+    public String toString() {
+        return "Datacenter " + id + " has a total cpus of " + totalCPUs;
+    }
+
 }

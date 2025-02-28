@@ -9,7 +9,7 @@ class Task {
     int originalArrivalTime;
     int duration;
     int cpuRequirement;
-    int dataLoad;
+    double dataLoad;
     int maxWaitTime;
     int currentWaitTime;
     int transferCompletionTime; // how long it took to transfer
@@ -17,10 +17,10 @@ class Task {
     int transferStartTick;
 
     int ticksElapsedSinceTransferStarted;
-    int dataTransferred;
+    double dataTransferred;
 
 
-    public Task(int id, int arrivalTime, int duration, int cpuRequirement, int dataLoad) {
+    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad) {
         this.id = id;
         this.arrivalTime = arrivalTime;
         this.originalArrivalTime = arrivalTime;
@@ -35,7 +35,7 @@ class Task {
         this.transferStartTick = 0;
 
         this.ticksElapsedSinceTransferStarted = 0;
-        this.dataTransferred = 0;
+        this.dataTransferred = 0.0;
     }
 
 
@@ -46,7 +46,7 @@ class Task {
     public int getDuration() {
         return duration;
     }
-    public int getDataLoad() {return dataLoad; }
+    public double getDataLoad() {return dataLoad; }
     public int getMaxWaitTime() {
         return maxWaitTime;
     }
@@ -87,15 +87,15 @@ class Task {
         this.ticksElapsedSinceTransferStarted++;
     }
 
-    public int getDataTransferred() {
+    public double getDataTransferred() {
         return this.dataTransferred;
     }
 
-    public void incrementDataTransferred(int dataTransferred) {
+    public void incrementDataTransferred(double dataTransferred) {
         this.dataTransferred += dataTransferred;
     }
 
-    public void setDataTransferred(int dataTransferred) {
+    public void setDataTransferred(double dataTransferred) {
         this.dataTransferred = dataTransferred;
     }
 

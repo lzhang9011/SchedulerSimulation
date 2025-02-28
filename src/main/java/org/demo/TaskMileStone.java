@@ -14,10 +14,10 @@ class TaskMilestone {
         int actualCompletionTimeStamp;
         int originalDuration;
         int actualDuration;
-        int dataTransferred;
+        double dataTransferred;
         int transferCompletionTime; // how long it took to transfer
 
-        Milestone(Task task, int eventualArrivalTime, boolean transferred, int dataTransferred) {
+        Milestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred) {
             this.taskId = task.getId();
             this.originalArrivalTime = task.getOriginalArrivalTime();
             this.eventualArrivalTime = eventualArrivalTime;
@@ -32,7 +32,7 @@ class TaskMilestone {
 
     private final List<Milestone> milestones = new ArrayList<>();
 
-    public void recordMilestone(Task task, int eventualArrivalTime, boolean transferred, int dataTransferred) {
+    public void recordMilestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred) {
         milestones.add(new Milestone(task, eventualArrivalTime, transferred, dataTransferred));
     }
 
