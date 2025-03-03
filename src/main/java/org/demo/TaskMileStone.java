@@ -10,22 +10,26 @@ class TaskMilestone {
         int taskId;
         int originalArrivalTime;
         int eventualArrivalTime;
+        int cpuRequired;
         boolean transferred;
         int actualCompletionTimeStamp;
         int originalDuration;
         int actualDuration;
         double dataTransferred;
+        double dataLoad;
         int transferCompletionTime; // how long it took to transfer
 
         Milestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred) {
             this.taskId = task.getId();
             this.originalArrivalTime = task.getOriginalArrivalTime();
             this.eventualArrivalTime = eventualArrivalTime;
+            this.cpuRequired = task.cpuRequirement;
             this.transferred = transferred;
             this.actualCompletionTimeStamp = task.getCompletionTimeStamp();
             this.originalDuration = task.getDuration();
             this.actualDuration = task.getCompletionTimeStamp() - task.originalArrivalTime;
             this.dataTransferred = dataTransferred;
+            this.dataLoad = task.dataLoad;
             this.transferCompletionTime = task.getTransferCompletionTime();
         }
     }
@@ -38,16 +42,18 @@ class TaskMilestone {
 
     public void writeToCSVFull(String filePath) {
         try (FileWriter writer = new FileWriter(filePath)) {
-            writer.write("task_id,original_arrival_time,eventual_arrival_time,transferred,actual_completion_time,original_duration,actual_duration, data_transferred, transfer_completion_time\n");
+            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_time,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time\n");
             for (Milestone milestone : milestones) {
                 writer.write(milestone.taskId + "," +
                         milestone.originalArrivalTime + "," +
                         milestone.eventualArrivalTime + "," +
+                        milestone.cpuRequired + "," +
                         milestone.transferred + "," +
                         milestone.actualCompletionTimeStamp + "," +
                         milestone.originalDuration + "," +
                         milestone.actualDuration + "," +
-                        milestone.dataTransferred + "," +
+                        String.format("%.2f", milestone.dataTransferred) + "," +
+                        String.format("%.2f", milestone.dataLoad) + "," +
                         milestone.transferCompletionTime + "\n");
             }
             System.out.println("✅ Milestone data written to " + filePath);

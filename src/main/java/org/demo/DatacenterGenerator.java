@@ -18,7 +18,7 @@ public class DatacenterGenerator {
     public static List<Datacenter> generateDatacenters() {
         List<Datacenter> datacenters = new ArrayList<>();
 
-        datacenters.add(new Datacenter(0,16));
+        datacenters.add(new Datacenter(0,0));
         datacenters.add(new Datacenter(1,64));
 
         return datacenters;

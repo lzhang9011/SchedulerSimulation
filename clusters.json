@@ -1,13 +1,15 @@
 [
   {
-    "totalCPUs": 16,
-    "availableCPUs": 16,
+    "id": 0,
+    "totalCPUs": 0,
+    "availableCPUs": 0,
     "eventQueue": [],
     "waitingQueue": [],
     "runningTasks": {},
     "transferTasks": []
   },
   {
+    "id": 1,
     "totalCPUs": 64,
     "availableCPUs": 64,
     "eventQueue": [],

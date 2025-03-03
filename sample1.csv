@@ -1,2 +1,2 @@
 job_id,user,vc,gpu_num,cpu_num,node_num,state,submit_time,start_time,end_time,duration,queue
-545898,uJcI8,vcWoR,0,1,1,COMPLETED,2020-05-03 00:45:13,2020-05-03 00:45:13,2020-05-03 00:45:14,1,0
+746833,ujWZX,vcaC7,0,1,1,COMPLETED,2020-08-15 14:29:10,2020-08-15 14:29:10,2020-08-15 14:30:41,91,0

@@ -6,7 +6,7 @@ class Datacenter {
     private final int id;
     private final int totalCPUs;
     private int availableCPUs;
-    private final PriorityQueue<Task> eventQueue = new PriorityQueue<>(Comparator.comparingInt(j -> j.arrivalTime));
+    private final Queue<Task> eventQueue = new LinkedList<>();;
     private final Queue<Task> waitingQueue = new LinkedList<>();
     private final Map<Task, Integer> runningTasks = new HashMap<>();
     private final List<Task> transferTasks = new ArrayList<>();
@@ -21,15 +21,28 @@ class Datacenter {
         eventQueue.offer(task);
     }
 
-    public PriorityQueue<Task> getEventQueue() {
+    public Queue<Task> getEventQueue() {
         return eventQueue;
     }
 
+    //任何一个queue里都没任务了吗？
     public boolean hasPendingTasks() {
-        return !eventQueue.isEmpty() || !runningTasks.isEmpty();
+
+        if (eventQueue.isEmpty() && runningTasks.isEmpty() && waitingQueue.isEmpty()) {
+            // 都为空，返回false;
+            return false;
+        } else {
+            //但凡有一个list不为空，返回true,
+            return true;
+        }
     }
-    public boolean isTransferComplete() {
-        return transferTasks.isEmpty();
+    public boolean hasUnfinishedTransfers() {
+        // 如果列表为空，代表没有未完成的任务
+        if (transferTasks.isEmpty()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     // traverse waitingTask queue, increment by 1 for all waiting tasks.  if any task has exceeded max wait time, move to outgoing Queue.
@@ -41,7 +54,7 @@ class Datacenter {
             waitingTask.incrementWaitTime();
 
             if (waitingTask.currentWaitTime > waitingTask.getMaxWaitTime()) {
-                System.out.println("Task " + waitingTask.id + " has exceeded max wait time and is moved to outgoing queue.");
+//                System.out.println("Task " + waitingTask.id + " has exceeded max wait time and is moved to outgoing queue.");
                 // waitingTask should be moved to the transferTasks list.
                 transferTasks.add(waitingTask);
                 waitingTask.transferStartTick = currentTime;
@@ -66,14 +79,14 @@ class Datacenter {
             transferTask.incrementTicksElapsedSinceTransferStarted();//update time ticks for transfer
             transferTask.incrementDataTransferred(bandwidthPerTask);//update data transferred
 
-            if (transferTask.getDataTransferred() == transferTask.getDataLoad()) {
-                transferTask.setDataTransferred(transferTask.getDataLoad()); // ensure the datatransferred do not exceed total dataLoad.
+            if (transferTask.getDataTransferred() >= transferTask.getDataLoad()) {
+                transferTask.setDataTransferred(transferTask.getDataLoad()); // ensure the dataTransferred do not exceed total dataLoad.
                 int transferTime = currentTime - transferTask.transferStartTick;
                 transferTask.setTransferCompletionTime(transferTime);
                 completedTransfers.add(transferTask);
                 iterator.remove();
-                System.out.println("✅ Transfer complete for Task " + transferTask.id + " at tick " + currentTime +
-                        ". Took " + transferTime + " ticks.");
+//                System.out.println("✅ Transfer complete for Task " + transferTask.id + " at tick " + currentTime +
+//                        ". Took " + transferTime + " ticks.");
             } else {
 //                System.out.println("Transfer Progress: Task " + transferTask.id + " is at " +
 //                        transferTask.dataTransferred + "/" + transferTask.dataLoad +
@@ -88,14 +101,14 @@ class Datacenter {
 
     public void handleTaskArrival(int currentTime, TaskMilestone milestoneTracker) {
 
-        if (!eventQueue.isEmpty() && eventQueue.peek().arrivalTime == currentTime) {
+        if (!eventQueue.isEmpty() && eventQueue.peek().arrivalTime <= currentTime) {
             Task task = eventQueue.poll();
-            System.out.println("Task " + task.id + " has arrived at tick " + currentTime + ", requiring " + task.cpuRequirement + " CPUs for " + task.duration + " ticks.");
+//            System.out.println("Task " + task.id + " has arrived at tick " + currentTime + ", requiring " + task.cpuRequirement + " CPUs for " + task.duration + " ticks.");
             if (task.cpuRequirement <= availableCPUs) {
-                System.out.println("Decision: Task " + task.id + " can run immediately.");
+//                System.out.println("Decision: Task " + task.id + " can run immediately.");
                 startTask(task, currentTime, milestoneTracker);
             } else {
-                System.out.println("Decision: Task " + task.id + " has to wait in the queue.");
+//                System.out.println("Decision: Task " + task.id + " has to wait in the queue.");
                 task.currentWaitTime = 0;
                 waitingQueue.offer(task);
             }
@@ -109,7 +122,7 @@ class Datacenter {
             Task task = entry.getKey();
             if (currentTime == endTime) {
                 task.setCompletionTimeStamp(currentTime);
-                System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs. Progress: 100.00%");
+//                System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs. Progress: 100.00%");
 
                 availableCPUs += task.cpuRequirement;
                 iterator.remove();
@@ -124,7 +137,7 @@ class Datacenter {
             Task task = iterator.next();
 
             if (task.cpuRequirement <= availableCPUs) {
-                System.out.println("Task " + task.id + " from waiting queue is now able to run.");
+//                System.out.println("Task " + task.id + " from waiting queue is now able to run.");
                 startTask(task, currentTime, milestoneTracker);
                 iterator.remove();
             }
@@ -133,7 +146,7 @@ class Datacenter {
 
     private void startTask(Task task, int currentTime, TaskMilestone milestoneTracker) {
 
-        System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks and the transferTime is " + task.transferCompletionTime);
+//        System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks and the transferTime is " + task.transferCompletionTime);
         runningTasks.put(task, currentTime + task.duration);
         availableCPUs -= task.cpuRequirement;
     }

@@ -1,9 +1,5 @@
 package org.demo;
 
-import org.demo.Datacenter;
-import org.demo.DatacenterGenerator;
-import org.demo.Task;
-import org.example.Job;
 import org.example.Loader_CSV;
 
 import java.io.BufferedReader;
@@ -15,6 +11,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 
@@ -68,16 +65,16 @@ class Scheduler {
         Scanner scanner = new Scanner(System.in);
         int sampleSize;
         while (true) {
-            System.out.print("Enter a sample size (1-10): ");
+            System.out.print("Enter a sample size (1-100): ");
             if (scanner.hasNextInt()) {
                 sampleSize = scanner.nextInt();
-                if (sampleSize >= 1 && sampleSize <= 10) {
+                if (sampleSize >= 1 && sampleSize <= 100) {
                     break;
                 }
             } else {
                 scanner.next();
             }
-            System.out.println("Invalid input. Please enter a number between 1 and 10.");
+            System.out.println("Invalid input. Please enter a number between 1 and 100.");
         }
         scanner.close();
         return sampleSize;
@@ -126,9 +123,17 @@ class Scheduler {
                 long submitEpochSeconds = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter)
                         .toEpochSecond(ZoneOffset.UTC);
                 int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
-                double dataLoad = duration * resourceRequirement * GBperTick;
 
-                Task task = new Task(entryCount++, arrivalTime, duration, resourceRequirement, dataLoad);
+                if (!tasksEverExisted.isEmpty()) {
+                    Task lastTask = tasksEverExisted.get(tasksEverExisted.size() - 1);
+                    if (lastTask.getArrivalTime() == arrivalTime) {
+                        arrivalTime++;
+                    }
+                }
+
+                double dataLoad = 1024 * duration * resourceRequirement * GBperTick - (new Random().nextInt(10) + 1);
+
+                Task task = new Task(entryCount++, 1, duration, resourceRequirement, dataLoad);
                 tasksEverExisted.add(task);
             }
 
@@ -154,66 +159,63 @@ class Scheduler {
         // ✅2. load csv file to generate sample dataset.
         int sampleSize = getSampleSizeFromUser();
         loadTasksFromCSV("cluster_log.csv", sampleSize);
-        for(Task task : tasksEverExisted) {
-            System.out.println(task);
-        }
 
         // ✅3. add to local's eventQueue
         for (Task task : tasksEverExisted) {
-            addTask(task);
+            localDatacenter.addTask(task);
         }
-
-
-
         System.out.println(localDatacenter.getEventQueue());
 
-//
-//        System.out.println("Simulation started.\n---------------------------------------------------------");
-//
-//        while (localDatacenter.hasPendingTasks() || !localDatacenter.isTransferComplete() || remoteDatacenter.hasPendingTasks() || !remoteDatacenter.isTransferComplete()) {
+        System.out.println("Simulation started.\n---------------------------------------------------------");
+
+
+        while (localDatacenter.hasPendingTasks() || localDatacenter.hasUnfinishedTransfers() || remoteDatacenter.hasPendingTasks() || remoteDatacenter.hasUnfinishedTransfers()) {
 //            System.out.println("Current Time is: " + currentTime);
-//            List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
-//            for (Task task : completedTransfers) {
-//                task.setArrivalTime(currentTime); // update transferred task's arrival time
-//                remoteDatacenter.addTask(task);
-//                System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
-//            }
-//            localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
-//            /*
-//             * add milestoneTracker instance
-//             * because both methods --handleTaskArrival() and handleTaskCompletion()
-//             * will call startTask(), which will check if the task is transferred or not
-//             * */
-//            localDatacenter.handleTaskArrival(currentTime, milestoneTracker);
-//            localDatacenter.handleTaskCompletion(currentTime, milestoneTracker);
+
+            List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
+            for (Task task : completedTransfers) {
+                task.setArrivalTime(currentTime); // update transferred task's arrival time
+                remoteDatacenter.addTask(task);
+                System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
+            }
+            localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
+            /*
+             * add milestoneTracker instance
+             * because both methods --handleTaskArrival() and handleTaskCompletion()
+             * will call startTask(), which will check if the task is transferred or not
+             * */
+            localDatacenter.handleTaskArrival(currentTime, milestoneTracker);
+            localDatacenter.handleTaskCompletion(currentTime, milestoneTracker);
 //            localDatacenter.printSystemStatus(currentTime);
-//
-//            remoteDatacenter.handleTaskArrival(currentTime, milestoneTracker);
-//            remoteDatacenter.handleTaskCompletion(currentTime, milestoneTracker);
+
+            remoteDatacenter.handleTaskArrival(currentTime, milestoneTracker);
+            remoteDatacenter.handleTaskCompletion(currentTime, milestoneTracker);
 //            remoteDatacenter.printSystemStatus(currentTime);
-//
-//            currentTime++;
-//        }
-//
-//        // recording milestones of tasks
-//        for (Task task : tasksEverExisted) {
-//            if (task.getOriginalArrivalTime() == task.getArrivalTime()) {
-//                milestoneTracker.recordMilestone(task, task.getArrivalTime(), false, 0);
-//            } else {
-//                // remote task milestone tracking:
-//                milestoneTracker.recordMilestone(task, task.getArrivalTime(), true, task.getDataLoad());
-//            }
-//        }
-//
-//
-////        // Write full milestones to CSV
-//        milestoneTracker.writeToCSVFull("task_milestonesFull.csv");
-//
-//        // Write Data Transferred & Total Completion Time (considering transfer time cost) ONLY to CSV
-////        milestoneTracker.writeToCSVImportant("task_milestonesImportant.csv");
-//
+
+            currentTime++;
+        }
+
+        // recording milestones of tasks
+        for (Task task : tasksEverExisted) {
+            if (task.getOriginalArrivalTime() == task.getArrivalTime()) {
+                milestoneTracker.recordMilestone(task, task.getArrivalTime(), false, 0);
+            } else {
+                // remote task milestone tracking:
+                milestoneTracker.recordMilestone(task, task.getArrivalTime(), true, task.getDataLoad());
+            }
+        }
+
+        // stats analysis
+
+
+//        // Write full milestones to CSV
+        milestoneTracker.writeToCSVFull("task_milestonesFull.csv");
+
+        // Write Data Transferred & Total Completion Time (considering transfer time cost) ONLY to CSV
+//        milestoneTracker.writeToCSVImportant("task_milestonesImportant.csv");
+
 //        System.out.println(remoteDatacenter.getEventQueue());
-//        System.out.println("\nSimulation complete.");
+        System.out.println("\nSimulation complete.");
     }
 
 }

@@ -1,5 +1,0 @@
-task_id,transferred,original_duration,actual_duration, data_transferred
-1,false,5,5,0
-2,false,1,1,0
-3,true,2,10,4
-4,false,2,4,0
