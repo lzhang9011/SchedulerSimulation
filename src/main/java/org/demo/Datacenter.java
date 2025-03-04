@@ -25,7 +25,6 @@ class Datacenter {
         return eventQueue;
     }
 
-    //任何一个queue里都没任务了吗？
     public boolean hasPendingTasks() {
 
         if (eventQueue.isEmpty() && runningTasks.isEmpty() && waitingQueue.isEmpty()) {

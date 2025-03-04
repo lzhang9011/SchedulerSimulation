@@ -27,8 +27,7 @@ class Task {
         this.duration = duration;
         this.cpuRequirement = cpuRequirement;
         this.dataLoad = dataLoad;
-//        this.maxWaitTime = duration * cpuRequirement;
-        this.maxWaitTime = 2;
+        this.maxWaitTime = this.cpuRequirement * this.duration;
         this.currentWaitTime = 0;
         this.transferCompletionTime = 0;
         this.completionTimeStamp = -1;

@@ -124,16 +124,16 @@ class Scheduler {
                         .toEpochSecond(ZoneOffset.UTC);
                 int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
 
-                if (!tasksEverExisted.isEmpty()) {
-                    Task lastTask = tasksEverExisted.get(tasksEverExisted.size() - 1);
-                    if (lastTask.getArrivalTime() == arrivalTime) {
-                        arrivalTime++;
-                    }
-                }
+//                if (!tasksEverExisted.isEmpty()) {
+//                    Task lastTask = tasksEverExisted.get(tasksEverExisted.size() - 1);
+//                    if (lastTask.getArrivalTime() == arrivalTime) {
+//                        arrivalTime++;
+//                    }
+//                }
 
                 double dataLoad = 1024 * duration * resourceRequirement * GBperTick - (new Random().nextInt(10) + 1);
 
-                Task task = new Task(entryCount++, 1, duration, resourceRequirement, dataLoad);
+                Task task = new Task(entryCount++, arrivalTime, duration, resourceRequirement, dataLoad);
                 tasksEverExisted.add(task);
             }
 
@@ -164,7 +164,7 @@ class Scheduler {
         for (Task task : tasksEverExisted) {
             localDatacenter.addTask(task);
         }
-        System.out.println(localDatacenter.getEventQueue());
+//        System.out.println(localDatacenter.getEventQueue());
 
         System.out.println("Simulation started.\n---------------------------------------------------------");
 
@@ -176,7 +176,7 @@ class Scheduler {
             for (Task task : completedTransfers) {
                 task.setArrivalTime(currentTime); // update transferred task's arrival time
                 remoteDatacenter.addTask(task);
-                System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
+//                System.out.println("Task " + task.id + " has arrived at remoteDatacenter's eventQueue.");
             }
             localDatacenter.moveTaskToTracker(currentTime);//increment waitTime for waiting Tasks.
             /*

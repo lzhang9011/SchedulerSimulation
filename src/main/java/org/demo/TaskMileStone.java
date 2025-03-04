@@ -42,7 +42,7 @@ class TaskMilestone {
 
     public void writeToCSVFull(String filePath) {
         try (FileWriter writer = new FileWriter(filePath)) {
-            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_time,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time\n");
+            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time\n");
             for (Milestone milestone : milestones) {
                 writer.write(milestone.taskId + "," +
                         milestone.originalArrivalTime + "," +
