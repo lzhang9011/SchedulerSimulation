@@ -40,7 +40,8 @@ class TaskMilestone {
         milestones.add(new Milestone(task, eventualArrivalTime, transferred, dataTransferred));
     }
 
-    public void writeToCSVFull(String filePath) {
+    public void writeToCSVFull(String s, int interval) {
+        String filePath = s.replace(".csv", "_" + interval + ".csv");
         try (FileWriter writer = new FileWriter(filePath)) {
             writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time\n");
             for (Milestone milestone : milestones) {

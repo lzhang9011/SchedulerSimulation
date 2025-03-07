@@ -49,10 +49,10 @@ class Scheduler {
         File file = new File(datacenterFile);
 
         if (file.exists()) {
-            System.out.println("Loading datacenters from JSON...");
+//            System.out.println("Loading datacenters from JSON...");
             datacenters = DatacenterGenerator.readDatacentersFromJson();
         } else {
-            System.out.println("Generating new clusters...");
+//            System.out.println("Generating new clusters...");
             datacenters = DatacenterGenerator.generateDatacenters();
             DatacenterGenerator.writeDatacentersToJson(datacenters);
         }
@@ -61,26 +61,8 @@ class Scheduler {
         return datacenters;
     }
 
-    public static int getSampleSizeFromUser() {
-        Scanner scanner = new Scanner(System.in);
-        int sampleSize;
-        while (true) {
-            System.out.print("Enter a sample size (1-100): ");
-            if (scanner.hasNextInt()) {
-                sampleSize = scanner.nextInt();
-                if (sampleSize >= 1 && sampleSize <= 100) {
-                    break;
-                }
-            } else {
-                scanner.next();
-            }
-            System.out.println("Invalid input. Please enter a number between 1 and 100.");
-        }
-        scanner.close();
-        return sampleSize;
-    }
 
-    public void loadTasksFromCSV(String inputFile, int sampleSize) {
+    public void loadTasksFromCSV(String inputFile, int sampleSize, int interval) {
         File sampleFile = new File("sample" + sampleSize + ".csv");
         Loader_CSV.processCSV(inputFile, sampleFile.getName(), sampleSize);
 
@@ -124,13 +106,6 @@ class Scheduler {
                         .toEpochSecond(ZoneOffset.UTC);
                 int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
 
-//                if (!tasksEverExisted.isEmpty()) {
-//                    Task lastTask = tasksEverExisted.get(tasksEverExisted.size() - 1);
-//                    if (lastTask.getArrivalTime() == arrivalTime) {
-//                        arrivalTime++;
-//                    }
-//                }
-
                 double dataLoad = 1024 * duration * resourceRequirement * GBperTick - (new Random().nextInt(10) + 1);
 
                 Task task = new Task(entryCount++, arrivalTime, duration, resourceRequirement, dataLoad);
@@ -147,26 +122,25 @@ class Scheduler {
     }
 
 
-    public void runSimulation() {
+    public void runSimulation(int interval, int sampleSize) {
+        // 0. clear previous simulation trace
+        tasksEverExisted.clear();
+        datacenters.clear();
+        currentTime = 0;
+
         // ✅1. load Or Generate datacenters.
         List<Datacenter> datacenters = loadOrGenerateDatacenters(datacenterFile);
-//        for (Datacenter datacenter : datacenters) {
-//            System.out.println(datacenter);
-//        }
         Datacenter localDatacenter = datacenters.get(0);
         Datacenter remoteDatacenter = datacenters.get(1);
 
         // ✅2. load csv file to generate sample dataset.
-        int sampleSize = getSampleSizeFromUser();
-        loadTasksFromCSV("cluster_log.csv", sampleSize);
+        loadTasksFromCSV("cluster_log.csv", sampleSize, interval);
 
         // ✅3. add to local's eventQueue
         for (Task task : tasksEverExisted) {
             localDatacenter.addTask(task);
         }
-//        System.out.println(localDatacenter.getEventQueue());
-
-        System.out.println("Simulation started.\n---------------------------------------------------------");
+        System.out.println("Simulation started with interval " + interval);
 
 
         while (localDatacenter.hasPendingTasks() || localDatacenter.hasUnfinishedTransfers() || remoteDatacenter.hasPendingTasks() || remoteDatacenter.hasUnfinishedTransfers()) {
@@ -205,13 +179,8 @@ class Scheduler {
             }
         }
 
-        // stats analysis
 
-
-//        // Write full milestones to CSV
-        milestoneTracker.writeToCSVFull("task_milestonesFull.csv");
-
-        // Write Data Transferred & Total Completion Time (considering transfer time cost) ONLY to CSV
+        milestoneTracker.writeToCSVFull("task_milestonesFull.csv", interval);
 //        milestoneTracker.writeToCSVImportant("task_milestonesImportant.csv");
 
 //        System.out.println(remoteDatacenter.getEventQueue());
