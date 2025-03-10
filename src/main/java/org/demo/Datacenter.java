@@ -17,6 +17,9 @@ class Datacenter {
         this.availableCPUs = totalCPUs;
     }
 
+    public int getTotalCPUs() {
+        return totalCPUs;
+    }
     public void addTask(Task task) {
         eventQueue.offer(task);
     }

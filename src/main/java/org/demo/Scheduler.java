@@ -12,7 +12,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 
 
 class Scheduler {
@@ -24,13 +23,13 @@ class Scheduler {
     private final TaskMilestone milestoneTracker = new TaskMilestone();
     private int currentTime = 0;
     private final double bandwidth = 100;
-
-
     private static final double GBperTick = 0.05;
 
     private final String baseTime = "2020-03-18 04:01:39"; // used to compute job's arrival time relative to the baseTime
     private final long baseEpochSeconds;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public List<Integer> resultList = new ArrayList<>();
 
     public Scheduler(String datacenterFile) {
         this.datacenterFile = datacenterFile;
@@ -92,6 +91,7 @@ class Scheduler {
 
             String dataLine;
             int entryCount = 0;
+            int nextArrivalTime = 0;
 
             while ((dataLine = reader.readLine()) != null) {
                 String[] values = dataLine.split(",");
@@ -102,14 +102,16 @@ class Scheduler {
 
                 int duration = Integer.parseInt(values[durationIdx].trim());
                 int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
-                long submitEpochSeconds = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter)
-                        .toEpochSecond(ZoneOffset.UTC);
-                int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
+//                long submitEpochSeconds = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter)
+//                        .toEpochSecond(ZoneOffset.UTC);
+//                int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
 
                 double dataLoad = 1024 * duration * resourceRequirement * GBperTick - (new Random().nextInt(10) + 1);
 
-                Task task = new Task(entryCount++, arrivalTime, duration, resourceRequirement, dataLoad);
+                Task task = new Task(entryCount++, nextArrivalTime, duration, resourceRequirement, dataLoad);
                 tasksEverExisted.add(task);
+
+                nextArrivalTime += interval;
             }
 
             if (entryCount == 0) {
@@ -126,7 +128,9 @@ class Scheduler {
         // 0. clear previous simulation trace
         tasksEverExisted.clear();
         datacenters.clear();
+        milestoneTracker.clearMilestones();
         currentTime = 0;
+        resultList.clear();
 
         // ✅1. load Or Generate datacenters.
         List<Datacenter> datacenters = loadOrGenerateDatacenters(datacenterFile);
@@ -180,10 +184,22 @@ class Scheduler {
         }
 
 
-        milestoneTracker.writeToCSVFull("task_milestonesFull.csv", interval);
-//        milestoneTracker.writeToCSVImportant("task_milestonesImportant.csv");
+        // cpu demand & runtime
+        int totalDemand = 0;
+        for (Task task : tasksEverExisted) {
+            int taskDemand = task.cpuRequirement * task.duration;
+            totalDemand += taskDemand;
+        }
+        // resource availability
+        int totalCPU = localDatacenter.getTotalCPUs();
 
-//        System.out.println(remoteDatacenter.getEventQueue());
+        // T
+        int period = milestoneTracker.writeToCSVFull("task_milestonesFull.csv", interval);
+
+        resultList.add(totalDemand);
+        resultList.add(totalCPU);
+        resultList.add(period);
+
         System.out.println("\nSimulation complete.");
     }
 
