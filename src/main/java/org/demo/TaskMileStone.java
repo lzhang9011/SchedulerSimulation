@@ -18,8 +18,9 @@ class TaskMilestone {
         double dataTransferred;
         double dataLoad;
         int transferCompletionTime; // how long it took to transfer
+        double cost;
 
-        Milestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred) {
+        Milestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred, double cost) {
             this.taskId = task.getId();
             this.originalArrivalTime = task.getOriginalArrivalTime();
             this.eventualArrivalTime = eventualArrivalTime;
@@ -31,13 +32,14 @@ class TaskMilestone {
             this.dataTransferred = dataTransferred;
             this.dataLoad = task.dataLoad;
             this.transferCompletionTime = task.getTransferCompletionTime();
+            this.cost = task.getCost();
         }
     }
 
     private final List<Milestone> milestones = new ArrayList<>();
 
-    public void recordMilestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred) {
-        milestones.add(new Milestone(task, eventualArrivalTime, transferred, dataTransferred));
+    public void recordMilestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred, double cost) {
+        milestones.add(new Milestone(task, eventualArrivalTime, transferred, dataTransferred, cost));
     }
 
     public void clearMilestones() {
@@ -49,7 +51,7 @@ class TaskMilestone {
         String filePath = s.replace(".csv", "_" + interval + ".csv");
         int maxCompletionTime = Integer.MIN_VALUE;
         try (FileWriter writer = new FileWriter(filePath, false)) {
-            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time\n");
+            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time, cost\n");
             for (Milestone milestone : milestones) {
                 writer.write(milestone.taskId + "," +
                         milestone.originalArrivalTime + "," +
@@ -61,13 +63,14 @@ class TaskMilestone {
                         milestone.actualDuration + "," +
                         String.format("%.2f", milestone.dataTransferred) + "," +
                         String.format("%.2f", milestone.dataLoad) + "," +
-                        milestone.transferCompletionTime + "\n");
+                        milestone.transferCompletionTime + "," +
+                        milestone.cost + "\n");
 
                 if (milestone.actualCompletionTimeStamp > maxCompletionTime) {
                     maxCompletionTime = milestone.actualCompletionTimeStamp;
                 }
             }
-            System.out.println("✅ Milestone data written to " + filePath);
+//            System.out.println("✅ Milestone data written to " + filePath);
         } catch (IOException e) {
             System.out.println("❌ Error writing to CSV: " + e.getMessage());
         }

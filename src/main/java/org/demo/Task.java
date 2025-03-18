@@ -18,9 +18,10 @@ class Task {
 
     int ticksElapsedSinceTransferStarted;
     double dataTransferred;
+    double cost;
 
 
-    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad) {
+    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad, double cost) {
         this.id = id;
         this.arrivalTime = arrivalTime;
         this.originalArrivalTime = arrivalTime;
@@ -35,6 +36,7 @@ class Task {
 
         this.ticksElapsedSinceTransferStarted = 0;
         this.dataTransferred = 0.0;
+        this.cost = cost;
     }
 
 
@@ -96,6 +98,14 @@ class Task {
 
     public void setDataTransferred(double dataTransferred) {
         this.dataTransferred = dataTransferred;
+    }
+
+    public double getCost() {
+        return this.cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost = cost;
     }
 
     @Override

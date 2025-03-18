@@ -116,22 +116,47 @@ class Datacenter {
             }
         }
     }
+    // original version of handleTaskCompletion()
+//    public void handleTaskCompletion(int currentTime, TaskMilestone milestoneTracker) {
+//        Iterator<Map.Entry<Task, Integer>> iterator = runningTasks.entrySet().iterator();
+//        while (iterator.hasNext()) {
+//            Map.Entry<Task, Integer> entry = iterator.next();
+//            int endTime = entry.getValue();
+//            Task task = entry.getKey();
+//            if (currentTime == endTime) {
+//                task.setCompletionTimeStamp(currentTime);
+////                System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs. Progress: 100.00%");
+//
+//                availableCPUs += task.cpuRequirement;
+//                iterator.remove();
+//                checkWaitingQueue(currentTime, milestoneTracker);
+//            }
+//        }
+//    }
+
+    // ?? could alleviate CME error?
     public void handleTaskCompletion(int currentTime, TaskMilestone milestoneTracker) {
-        Iterator<Map.Entry<Task, Integer>> iterator = runningTasks.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Task, Integer> entry = iterator.next();
+        List<Task> completedTasks = new ArrayList<>(); // Collect tasks to remove
+
+        for (Map.Entry<Task, Integer> entry : runningTasks.entrySet()) {
             int endTime = entry.getValue();
             Task task = entry.getKey();
             if (currentTime == endTime) {
                 task.setCompletionTimeStamp(currentTime);
-//                System.out.println("Task " + task.id + " has completed at tick " + currentTime + ", releasing " + task.cpuRequirement + " CPUs. Progress: 100.00%");
-
                 availableCPUs += task.cpuRequirement;
-                iterator.remove();
-                checkWaitingQueue(currentTime, milestoneTracker);
+                completedTasks.add(task); // Store task for removal
             }
         }
+
+        // Remove completed tasks outside the iteration loop
+        for (Task task : completedTasks) {
+            runningTasks.remove(task);
+        }
+
+        // Now, safely check the waiting queue
+        checkWaitingQueue(currentTime, milestoneTracker);
     }
+
 
     private void checkWaitingQueue(int currentTime, TaskMilestone milestoneTracker) {
         Iterator<Task> iterator = waitingQueue.iterator();
@@ -177,8 +202,8 @@ class Datacenter {
             System.out.println("Task " + transferTask.getId() + " is being transferred");
 //            System.out.println("");//current data transferred / total data Load
             System.out.println("Transfer Progress: Task " + transferTask.id + " is at " +
-                        transferTask.dataTransferred + "/" + transferTask.dataLoad +
-                        ". Current time: " + currentTime);
+                    transferTask.dataTransferred + "/" + transferTask.dataLoad +
+                    ". Current time: " + currentTime);
         }
 
         System.out.println("---------------------------------------------------------");

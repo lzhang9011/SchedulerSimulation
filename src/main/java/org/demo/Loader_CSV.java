@@ -13,7 +13,7 @@ public class Loader_CSV {
         String header = null;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-            header = reader.readLine();
+            header = reader.readLine(); // Read header
             String line;
 
             while ((line = reader.readLine()) != null) {
@@ -22,7 +22,6 @@ public class Loader_CSV {
                     completedEntries.add(line);
                 }
             }
-
         } catch (IOException e) {
             System.err.println("Error reading the file: " + e.getMessage());
             return;
@@ -33,7 +32,7 @@ public class Loader_CSV {
             return;
         }
 
-//        Collections.shuffle(completedEntries);
+        int limit = Math.min(sampleSize, completedEntries.size());
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             if (header != null) {
@@ -41,21 +40,13 @@ public class Loader_CSV {
                 writer.newLine();
             }
 
-            int limit = Math.min(sampleSize, completedEntries.size());
-
-            if (sampleSize > completedEntries.size()) {
-                throw new IllegalArgumentException("how is this possible exception\n");
-            }
-
-            int randomStartIndex = new Random().nextInt(completedEntries.size() - sampleSize - 1) ; //[0,size - 1 - 10]
             for (int i = 0; i < limit; i++) {
-                writer.write(completedEntries.get(i + randomStartIndex));
+                writer.write(completedEntries.get(i));
                 writer.newLine();
             }
-
-            System.out.println("Successfully created " + outputFile + " with " + limit + " randomly selected entries.");
         } catch (IOException e) {
             System.err.println("Error writing the file: " + e.getMessage());
         }
     }
+
 }
