@@ -145,6 +145,14 @@ class Scheduler {
         // ✅2. load csv file to generate sample dataset.
         loadTasksFromCSV("cluster_log.csv", sampleSize, interval);
 
+        // TODO 2.1 set each task's maxWaitTime based on num current active transfer tasks.
+        int numOftransferTasks = localDatacenter.numOftransferTasks();
+        double currentBandwidthRate = bandwidth % numOftransferTasks;
+        for (Task task : tasksEverExisted) {
+            double transferTime = task.getDataLoad() / currentBandwidthRate;
+            task.setMaxWaitTime((int)transferTime);
+        }
+
         // ✅3. add to local's eventQueue
         for (Task task : tasksEverExisted) {
             localDatacenter.addTask(task);

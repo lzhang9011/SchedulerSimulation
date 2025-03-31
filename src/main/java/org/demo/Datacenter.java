@@ -24,6 +24,10 @@ class Datacenter {
         eventQueue.offer(task);
     }
 
+    public int numOftransferTasks() {
+        return transferTasks.size();
+    }
+
     public Queue<Task> getEventQueue() {
         return eventQueue;
     }

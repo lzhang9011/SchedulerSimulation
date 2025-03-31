@@ -19,6 +19,7 @@ class TaskMilestone {
         double dataLoad;
         int transferCompletionTime; // how long it took to transfer
         double cost;
+        int actualWaitedTime;
 
         Milestone(Task task, int eventualArrivalTime, boolean transferred, double dataTransferred, double cost) {
             this.taskId = task.getId();
@@ -33,6 +34,7 @@ class TaskMilestone {
             this.dataLoad = task.dataLoad;
             this.transferCompletionTime = task.getTransferCompletionTime();
             this.cost = task.getCost();
+            this.actualWaitedTime = task.getCurrentWaitTime();
         }
     }
 
@@ -51,7 +53,7 @@ class TaskMilestone {
         String filePath = s.replace(".csv", "_" + interval + ".csv");
         int maxCompletionTime = Integer.MIN_VALUE;
         try (FileWriter writer = new FileWriter(filePath, false)) {
-            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time, cost\n");
+            writer.write("task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time, actual_waited_time, cost\n");
             for (Milestone milestone : milestones) {
                 writer.write(milestone.taskId + "," +
                         milestone.originalArrivalTime + "," +
@@ -64,6 +66,7 @@ class TaskMilestone {
                         String.format("%.2f", milestone.dataTransferred) + "," +
                         String.format("%.2f", milestone.dataLoad) + "," +
                         milestone.transferCompletionTime + "," +
+                        milestone.actualWaitedTime + "," +
                         milestone.cost + "\n");
 
                 if (milestone.actualCompletionTimeStamp > maxCompletionTime) {

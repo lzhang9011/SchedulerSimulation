@@ -28,7 +28,7 @@ class Task {
         this.duration = duration;
         this.cpuRequirement = cpuRequirement;
         this.dataLoad = dataLoad;
-        this.maxWaitTime = this.cpuRequirement * this.duration;
+        this.maxWaitTime = 0;
         this.currentWaitTime = 0;
         this.transferCompletionTime = 0;
         this.completionTimeStamp = -1;
@@ -51,9 +51,16 @@ class Task {
     public int getMaxWaitTime() {
         return maxWaitTime;
     }
+    public void setMaxWaitTime(int tmp) {
+        this.maxWaitTime = (int)(0.125 * this.cpuRequirement * this.duration); // transfer time
+    }
 
     public void incrementWaitTime() {
         this.currentWaitTime++;
+    }
+
+    public int getCurrentWaitTime() {
+        return currentWaitTime;
     }
 
     public int getTransferCompletionTime(){
