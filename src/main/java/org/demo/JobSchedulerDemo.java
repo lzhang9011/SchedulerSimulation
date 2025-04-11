@@ -8,11 +8,7 @@ public class JobSchedulerDemo {
         int i = 1;
         int[] steps = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20};
 
-        scheduler.runSimulation(100);
-//        for (int loopCount = 0; loopCount < 20; loopCount++) {
-//            scheduler.runSimulation(i);
-//            i += steps[loopCount];
-//        }
+        scheduler.runSimulation(2);
     }
 
 }

@@ -22,7 +22,6 @@ class Scheduler {
     private int currentTime = 0;
     private final double bandwidth = 10;
     private static final double MBperTick = 0.005;
-    private static final double costPerInstancePerHour = 0.096; // 2 vcpu + 8GB ram
 
     private final String baseTime = "2020-03-18 04:01:39"; // used to compute job's arrival time relative to the baseTime
     private final long baseEpochSeconds;
@@ -59,6 +58,62 @@ class Scheduler {
         return datacenters;
     }
 
+    public void load10TasksFromCSV(String inputFile, int factor) {
+        File sourceFile = new File(inputFile);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
+            String headerLine = reader.readLine();
+            if (headerLine == null) {
+                System.out.println("CSV file is empty.");
+                return;
+            }
+
+            String[] headers = headerLine.split(",");
+            int durationIdx = -1, gpuIdx = -1, cpuIdx = -1, submitTimeIdx = -1;
+
+            for (int i = 0; i < headers.length; i++) {
+                switch (headers[i].trim()) {
+                    case "duration": durationIdx = i; break;
+                    case "gpu_num": gpuIdx = i; break;
+                    case "cpu_num": cpuIdx = i; break;
+                    case "submit_time": submitTimeIdx = i; break;
+                }
+            }
+
+            if (durationIdx == -1 || gpuIdx == -1 || cpuIdx == -1 || submitTimeIdx == -1) {
+                System.out.println("One or more required columns are missing in the CSV file.");
+                return;
+            }
+
+            String dataLine;
+            int entryCount = 0;
+
+            while ((dataLine = reader.readLine()) != null && entryCount < 10) {
+                String[] values = dataLine.split(",");
+                if (values.length <= Math.max(durationIdx, Math.max(gpuIdx, Math.max(cpuIdx, submitTimeIdx)))) {
+                    System.out.println("Skipping malformed row: " + dataLine);
+                    continue;
+                }
+
+                int duration = Integer.parseInt(values[durationIdx].trim());
+                int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
+                double dataLoad = duration * resourceRequirement * MBperTick + (new Random().nextInt(10) + 1);
+                LocalDateTime submitDateTime = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter);
+                long submitEpoch = submitDateTime.toEpochSecond(ZoneOffset.UTC);
+
+                int arrivalTime = (int)((submitEpoch - baseEpochSeconds) / factor);
+                Task task = new Task(entryCount++, arrivalTime, duration, resourceRequirement, dataLoad);                tasksEverExisted.add(task);
+
+            }
+
+            if (entryCount == 0) {
+                System.out.println("No valid data entries found in " + inputFile);
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error reading the file: " + e.getMessage());
+        }
+    }
 
     public void loadTasksFromCSV(String inputFile, int interval) {
         File sourceFile = new File(inputFile);
@@ -119,7 +174,7 @@ class Scheduler {
 
 
 
-    public void runSimulation(int interval) {
+    public void runSimulation(int factor) {
         // 0. clear previous simulation trace
         tasksEverExisted.clear();
         datacenters.clear();
@@ -133,7 +188,8 @@ class Scheduler {
         Datacenter remoteDatacenter = datacenters.get(1);
 
         // ✅2. load csv file to generate sample dataset.
-        loadTasksFromCSV("cluster_log.csv", interval);
+//        loadTasksFromCSV("cluster_log.csv", interval);
+        load10TasksFromCSV("cluster_log.csv", factor);
 
         // TODO 2.1 set each task's maxWaitTime based on num current active transfer tasks.
         int numOftransferTasks = localDatacenter.numOftransferTasks();
@@ -187,7 +243,7 @@ class Scheduler {
             }
         }
 
-        milestoneTracker.writeToCSVFull("task_milestones.csv", interval);
+        milestoneTracker.writeToCSVFull("task_milestones.csv", factor);
 
 
 //        System.out.println("\nSimulation complete.");
