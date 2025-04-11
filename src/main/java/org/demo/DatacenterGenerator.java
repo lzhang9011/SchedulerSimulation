@@ -17,8 +17,8 @@ public class DatacenterGenerator {
         List<Datacenter> datacenters = new ArrayList<>();
         int maxCpuGpuSum = getMaxCpuGpuSumFromCSV();
 
-        datacenters.add(new Datacenter(0, maxCpuGpuSum * 2));
-        datacenters.add(new Datacenter(1, maxCpuGpuSum * 8));
+        datacenters.add(new Datacenter(0, maxCpuGpuSum));
+        datacenters.add(new Datacenter(1, maxCpuGpuSum * 100));
 
         return datacenters;
     }

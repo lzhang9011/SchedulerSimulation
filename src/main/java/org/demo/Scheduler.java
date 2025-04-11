@@ -20,7 +20,7 @@ class Scheduler {
 
     private final TaskMilestone milestoneTracker = new TaskMilestone();
     private int currentTime = 0;
-    private final double bandwidth = 100000;
+    private final double bandwidth = 10;
     private static final double MBperTick = 0.005;
     private static final double costPerInstancePerHour = 0.096; // 2 vcpu + 8GB ram
 
@@ -60,12 +60,10 @@ class Scheduler {
     }
 
 
-    public void loadTasksFromCSV(String inputFile, int sampleSize, int interval) {
-        File sampleFile = new File("sample" + sampleSize + ".csv");
-        Loader_CSV.processCSV(inputFile, sampleFile.getName(), sampleSize);
+    public void loadTasksFromCSV(String inputFile, int interval) {
+        File sourceFile = new File(inputFile);
 
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(sampleFile))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
             String headerLine = reader.readLine();
             if (headerLine == null) {
                 System.out.println("CSV file is empty.");
@@ -102,25 +100,16 @@ class Scheduler {
 
                 int duration = Integer.parseInt(values[durationIdx].trim());
                 int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
-//                long submitEpochSeconds = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter)
-//                        .toEpochSecond(ZoneOffset.UTC);
-//                int arrivalTime = (int) (submitEpochSeconds - getBaseEpochSeconds());
-
                 double dataLoad = duration * resourceRequirement * MBperTick + (new Random().nextInt(10) + 1);
 
-                double dataLoadinGB = dataLoad / 1024;
-                double durationInHrs = (double)duration / 60;
-                int instanceNeeded = Math.max(resourceRequirement % 2 + 1, (int)dataLoadinGB % 8 + 1);
-                double cost = instanceNeeded * durationInHrs * costPerInstancePerHour;
-
-                Task task = new Task(entryCount++, nextArrivalTime, duration, resourceRequirement, dataLoad, cost);
+                Task task = new Task(entryCount++, nextArrivalTime, duration, resourceRequirement, dataLoad);
                 tasksEverExisted.add(task);
 
                 nextArrivalTime += interval;
             }
 
             if (entryCount == 0) {
-                System.out.println("No valid data entries found in " + sampleFile.getName());
+                System.out.println("No valid data entries found in " + inputFile);
             }
 
         } catch (IOException e) {
@@ -129,7 +118,8 @@ class Scheduler {
     }
 
 
-    public void runSimulation(int interval, int sampleSize) {
+
+    public void runSimulation(int interval) {
         // 0. clear previous simulation trace
         tasksEverExisted.clear();
         datacenters.clear();
@@ -143,11 +133,11 @@ class Scheduler {
         Datacenter remoteDatacenter = datacenters.get(1);
 
         // ✅2. load csv file to generate sample dataset.
-        loadTasksFromCSV("cluster_log.csv", sampleSize, interval);
+        loadTasksFromCSV("cluster_log.csv", interval);
 
         // TODO 2.1 set each task's maxWaitTime based on num current active transfer tasks.
         int numOftransferTasks = localDatacenter.numOftransferTasks();
-        double currentBandwidthRate = bandwidth % numOftransferTasks;
+        double currentBandwidthRate = (numOftransferTasks == 0) ? bandwidth : bandwidth / numOftransferTasks;
         for (Task task : tasksEverExisted) {
             double transferTime = task.getDataLoad() / currentBandwidthRate;
             task.setMaxWaitTime((int)transferTime);
@@ -190,30 +180,15 @@ class Scheduler {
         // recording milestones of tasks
         for (Task task : tasksEverExisted) {
             if (task.getOriginalArrivalTime() == task.getArrivalTime()) {
-                task.setCost(0.0); // the task was not transferred, so no extra cost
-                milestoneTracker.recordMilestone(task, task.getArrivalTime(), false, 0, task.getCost());
+                milestoneTracker.recordMilestone(task, task.getArrivalTime(), false, 0);
             } else {
                 // remote task milestone tracking:
-                milestoneTracker.recordMilestone(task, task.getArrivalTime(), true, task.getDataLoad(), task.getCost());
+                milestoneTracker.recordMilestone(task, task.getArrivalTime(), true, task.getDataLoad());
             }
         }
 
+        milestoneTracker.writeToCSVFull("task_milestones.csv", interval);
 
-        // cpu demand & runtime
-        long totalDemand = 0;
-        for (Task task : tasksEverExisted) {
-            int taskDemand = task.cpuRequirement * task.duration;
-            totalDemand += taskDemand;
-        }
-        // resource availability
-        long totalCPU = localDatacenter.getTotalCPUs();
-
-        // T
-        long period = milestoneTracker.writeToCSVFull("task_milestonesFull.csv", interval);
-
-        resultList.add(totalDemand);
-        resultList.add(totalCPU);
-        resultList.add(period);
 
 //        System.out.println("\nSimulation complete.");
     }

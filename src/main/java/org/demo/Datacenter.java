@@ -57,13 +57,14 @@ class Datacenter {
         Iterator<Task> iterator = waitingQueue.iterator();
         while (iterator.hasNext()) {
             Task waitingTask = iterator.next();
-            waitingTask.incrementWaitTime();
+            waitingTask.incrementWaitTime(); // waiting locally
 
-            if (waitingTask.currentWaitTime > waitingTask.getMaxWaitTime()) {
+            // start the transfer
+            if (waitingTask.getCurrentWaitTime() > waitingTask.getMaxWaitTime()) {
 //                System.out.println("Task " + waitingTask.id + " has exceeded max wait time and is moved to outgoing queue.");
                 // waitingTask should be moved to the transferTasks list.
                 transferTasks.add(waitingTask);
-                waitingTask.transferStartTick = currentTime;
+                waitingTask.setTransferStartTick(currentTime);
 
                 iterator.remove();
             }
@@ -87,7 +88,9 @@ class Datacenter {
 
             if (transferTask.getDataTransferred() >= transferTask.getDataLoad()) {
                 transferTask.setDataTransferred(transferTask.getDataLoad()); // ensure the dataTransferred do not exceed total dataLoad.
-                int transferTime = currentTime - transferTask.transferStartTick;
+
+                int transferTime = currentTime - transferTask.getTransferStartTick();
+
                 transferTask.setTransferCompletionTime(transferTime);
                 completedTransfers.add(transferTask);
                 iterator.remove();
@@ -107,15 +110,16 @@ class Datacenter {
 
     public void handleTaskArrival(int currentTime, TaskMilestone milestoneTracker) {
 
-        if (!eventQueue.isEmpty() && eventQueue.peek().arrivalTime <= currentTime) {
+        if (!eventQueue.isEmpty() && eventQueue.peek().getArrivalTime() <= currentTime) {
             Task task = eventQueue.poll();
 //            System.out.println("Task " + task.id + " has arrived at tick " + currentTime + ", requiring " + task.cpuRequirement + " CPUs for " + task.duration + " ticks.");
-            if (task.cpuRequirement <= availableCPUs) {
+            if (task.getCpuRequirement() <= availableCPUs) {
 //                System.out.println("Decision: Task " + task.id + " can run immediately.");
                 startTask(task, currentTime, milestoneTracker);
             } else {
 //                System.out.println("Decision: Task " + task.id + " has to wait in the queue.");
-                task.currentWaitTime = 0;
+                // job starts waiting
+                task.setCurrentWaitTime(currentTime);
                 waitingQueue.offer(task);
             }
         }
@@ -147,7 +151,7 @@ class Datacenter {
             Task task = entry.getKey();
             if (currentTime == endTime) {
                 task.setCompletionTimeStamp(currentTime);
-                availableCPUs += task.cpuRequirement;
+                availableCPUs += task.getCpuRequirement();
                 completedTasks.add(task); // Store task for removal
             }
         }
@@ -167,7 +171,7 @@ class Datacenter {
         while (iterator.hasNext()) {
             Task task = iterator.next();
 
-            if (task.cpuRequirement <= availableCPUs) {
+            if (task.getCpuRequirement() <= availableCPUs) {
 //                System.out.println("Task " + task.id + " from waiting queue is now able to run.");
                 startTask(task, currentTime, milestoneTracker);
                 iterator.remove();
@@ -178,8 +182,8 @@ class Datacenter {
     private void startTask(Task task, int currentTime, TaskMilestone milestoneTracker) {
 
 //        System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks and the transferTime is " + task.transferCompletionTime);
-        runningTasks.put(task, currentTime + task.duration);
-        availableCPUs -= task.cpuRequirement;
+        runningTasks.put(task, currentTime + task.getDuration());
+        availableCPUs -= task.getCpuRequirement();
     }
 
     public void printSystemStatus(int currentTime) {
@@ -190,7 +194,7 @@ class Datacenter {
             Task task = entry.getKey();
             int endTime = entry.getValue();
 
-            int timeElapsed = currentTime - task.getOriginalArrivalTime() - task.currentWaitTime - task.getTransferCompletionTime(); // Time since the task started
+            int timeElapsed = currentTime - task.getOriginalArrivalTime() - task.getCurrentWaitTime() - task.getTransferCompletionTime(); // Time since the task started
 
             System.out.println("Task " + task.getId() + " who supposes to finish at " + endTime + " is at progress: " + timeElapsed + "/" + task.getDuration());
 
@@ -205,8 +209,8 @@ class Datacenter {
         for (Task transferTask : transferTasks) {
             System.out.println("Task " + transferTask.getId() + " is being transferred");
 //            System.out.println("");//current data transferred / total data Load
-            System.out.println("Transfer Progress: Task " + transferTask.id + " is at " +
-                    transferTask.dataTransferred + "/" + transferTask.dataLoad +
+            System.out.println("Transfer Progress: Task " + transferTask.getId() + " is at " +
+                    transferTask.getDataTransferred() + "/" + transferTask.getDataLoad() +
                     ". Current time: " + currentTime);
         }
 

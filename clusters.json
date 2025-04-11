@@ -1,8 +1,8 @@
 [
   {
     "id": 0,
-    "totalCPUs": 1920,
-    "availableCPUs": 1920,
+    "totalCPUs": 960,
+    "availableCPUs": 960,
     "eventQueue": [],
     "waitingQueue": [],
     "runningTasks": {},
@@ -10,8 +10,8 @@
   },
   {
     "id": 1,
-    "totalCPUs": 7680,
-    "availableCPUs": 7680,
+    "totalCPUs": 96000,
+    "availableCPUs": 96000,
     "eventQueue": [],
     "waitingQueue": [],
     "runningTasks": {},

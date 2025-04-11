@@ -1,27 +1,23 @@
 package org.demo;
 
-import java.util.HashMap;
-import java.util.Map;
-
 class Task {
-    int id;
-    int arrivalTime;
-    int originalArrivalTime;
-    int duration;
-    int cpuRequirement;
-    double dataLoad;
-    int maxWaitTime;
-    int currentWaitTime;
-    int transferCompletionTime; // how long it took to transfer
-    int completionTimeStamp;
-    int transferStartTick;
+    private int id;
+    private int arrivalTime;
+    private int originalArrivalTime;
+    private int duration;
+    private int cpuRequirement;
+    private double dataLoad;
+    private int maxWaitTime;
+    private int currentWaitTime;
+    private int transferCompletionTime; // how long it took to transfer
+    private int completionTimeStamp;
+    private int transferStartTick;
 
-    int ticksElapsedSinceTransferStarted;
-    double dataTransferred;
-    double cost;
+    private int ticksElapsedSinceTransferStarted;
+    private double dataTransferred;
 
 
-    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad, double cost) {
+    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad) {
         this.id = id;
         this.arrivalTime = arrivalTime;
         this.originalArrivalTime = arrivalTime;
@@ -31,12 +27,11 @@ class Task {
         this.maxWaitTime = 0;
         this.currentWaitTime = 0;
         this.transferCompletionTime = 0;
-        this.completionTimeStamp = -1;
+        this.completionTimeStamp = 0;
         this.transferStartTick = 0;
 
         this.ticksElapsedSinceTransferStarted = 0;
         this.dataTransferred = 0.0;
-        this.cost = cost;
     }
 
 
@@ -47,12 +42,22 @@ class Task {
     public int getDuration() {
         return duration;
     }
+
+    public int getCpuRequirement() {
+        return this.cpuRequirement;
+    }
     public double getDataLoad() {return dataLoad; }
     public int getMaxWaitTime() {
         return maxWaitTime;
     }
     public void setMaxWaitTime(int tmp) {
-        this.maxWaitTime = (int)(0.125 * this.cpuRequirement * this.duration); // transfer time
+//        this.maxWaitTime = (int)(0.125 * this.cpuRequirement * this.duration / 1.2); // transfer time
+
+//        this.maxWaitTime = (int)(0.125 * this.cpuRequirement * this.duration / 1.2) + tmp + new Random().nextInt(5) + 1; // transfer time
+        this.maxWaitTime = Math.max(0,
+                (int)((0.09 * this.cpuRequirement * this.duration) - 6000) // decrease the impact of high waitTime
+        );
+
     }
 
     public void incrementWaitTime() {
@@ -61,6 +66,10 @@ class Task {
 
     public int getCurrentWaitTime() {
         return currentWaitTime;
+    }
+
+    public void setCurrentWaitTime(int currentTime) {
+        this.currentWaitTime = currentTime;
     }
 
     public int getTransferCompletionTime(){
@@ -107,13 +116,14 @@ class Task {
         this.dataTransferred = dataTransferred;
     }
 
-    public double getCost() {
-        return this.cost;
+    public int getTransferStartTick() {
+        return this.transferStartTick;
     }
 
-    public void setCost(double cost) {
-        this.cost = cost;
+    public void setTransferStartTick(int currentTime) {
+        this.transferStartTick = currentTime;
     }
+
 
     @Override
     public String toString() {
