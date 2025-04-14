@@ -8,7 +8,7 @@ class Task {
     private int cpuRequirement;
     private double dataLoad;
     private int maxWaitTime;
-    private int currentWaitTime;
+    private int currentWaitTime;//how many time ticks a job has waited in the waitingQueue
     private int transferCompletionTime; // how long it took to transfer
     private int completionTimeStamp;
     private int transferStartTick;
@@ -17,14 +17,14 @@ class Task {
     private double dataTransferred;
 
 
-    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad) {
+    public Task(int id, int arrivalTime, int duration, int cpuRequirement, double dataLoad, int maxWaitTime) {
         this.id = id;
         this.arrivalTime = arrivalTime;
         this.originalArrivalTime = arrivalTime;
         this.duration = duration;
         this.cpuRequirement = cpuRequirement;
         this.dataLoad = dataLoad;
-        this.maxWaitTime = 0;
+        this.maxWaitTime = maxWaitTime;
         this.currentWaitTime = 0;
         this.transferCompletionTime = 0;
         this.completionTimeStamp = 0;

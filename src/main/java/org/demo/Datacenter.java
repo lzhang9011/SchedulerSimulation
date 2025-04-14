@@ -4,7 +4,7 @@ import java.util.*;
 
 class Datacenter {
     private final int id;
-    private final int totalCPUs;
+    private int totalCPUs;
     private int availableCPUs;
     private final Queue<Task> eventQueue = new LinkedList<>();;
     private final Queue<Task> waitingQueue = new LinkedList<>();
@@ -19,6 +19,10 @@ class Datacenter {
 
     public int getTotalCPUs() {
         return totalCPUs;
+    }
+
+    public void setTotalCPUs(int i) {
+        this.totalCPUs = i;
     }
     public void addTask(Task task) {
         eventQueue.offer(task);
@@ -119,7 +123,9 @@ class Datacenter {
             } else {
 //                System.out.println("Decision: Task " + task.id + " has to wait in the queue.");
                 // job starts waiting
-                task.setCurrentWaitTime(currentTime);
+                if (task.getCurrentWaitTime() == 0) {
+                    task.setCurrentWaitTime(0);       // Start from 0, will increment in moveTaskToTracker
+                }
                 waitingQueue.offer(task);
             }
         }
@@ -144,12 +150,13 @@ class Datacenter {
 
     // ?? could alleviate CME error?
     public void handleTaskCompletion(int currentTime, TaskMilestone milestoneTracker) {
-        List<Task> completedTasks = new ArrayList<>(); // Collect tasks to remove
+        List<Task> completedTasks = new ArrayList<>();
 
         for (Map.Entry<Task, Integer> entry : runningTasks.entrySet()) {
             int endTime = entry.getValue();
             Task task = entry.getKey();
             if (currentTime == endTime) {
+                System.out.println("✅ Task " + task.getId() + " completed at tick " + currentTime);
                 task.setCompletionTimeStamp(currentTime);
                 availableCPUs += task.getCpuRequirement();
                 completedTasks.add(task); // Store task for removal
@@ -161,7 +168,6 @@ class Datacenter {
             runningTasks.remove(task);
         }
 
-        // Now, safely check the waiting queue
         checkWaitingQueue(currentTime, milestoneTracker);
     }
 
@@ -171,7 +177,7 @@ class Datacenter {
         while (iterator.hasNext()) {
             Task task = iterator.next();
 
-            if (task.getCpuRequirement() <= availableCPUs) {
+            if (!runningTasks.containsKey(task) && task.getCpuRequirement() <= availableCPUs) {
 //                System.out.println("Task " + task.id + " from waiting queue is now able to run.");
                 startTask(task, currentTime, milestoneTracker);
                 iterator.remove();
@@ -181,12 +187,18 @@ class Datacenter {
 
     private void startTask(Task task, int currentTime, TaskMilestone milestoneTracker) {
 
-//        System.out.println("Task " + task.id + " is starting execution after waiting " + task.currentWaitTime + " ticks and the transferTime is " + task.transferCompletionTime);
+        if (runningTasks.containsKey(task)) {
+            System.out.println("⚠️ Warning: Task " + task.getId() + " is already running. Skipping redundant start.");
+            return;
+        }
+
+        System.out.println("Task " + task.getId() + " is starting execution after waiting " + task.getCurrentWaitTime() + " ticks and the transferTime is " + task.getTransferCompletionTime());
+
         runningTasks.put(task, currentTime + task.getDuration());
         availableCPUs -= task.getCpuRequirement();
     }
 
-    public void printSystemStatus(int currentTime) {
+    public void printSystemStatus(int currentTime, double bandwidth) {
 
         System.out.println("Free CPUs: " + availableCPUs + ", Busy CPUs: " + (totalCPUs - availableCPUs));
         System.out.println("Running List:");
@@ -201,18 +213,24 @@ class Datacenter {
         }
 
         System.out.println("Waiting Queue: " + waitingQueue);
-        System.out.println("Transfer List: ");
-        if (transferTasks.isEmpty()) {
+
+        int numTransferTasks = transferTasks.size();
+        System.out.println("Transfer Tasks: " + numTransferTasks + " task(s) currently transferring.");
+        if (numTransferTasks > 0) {
+            double bandwidthPerTask = bandwidth / numTransferTasks;
+            System.out.printf("Total Bandwidth: %.2f, Bandwidth per task: %.2f%n", bandwidth, bandwidthPerTask);
+
+            for (Task transferTask : transferTasks) {
+                System.out.println("Task " + transferTask.getId() + " is being transferred");
+                System.out.printf("Transfer Progress: %.2f / %.2f (%.2f%%)%n",
+                        transferTask.getDataTransferred(),
+                        transferTask.getDataLoad(),
+                        100.0 * transferTask.getDataTransferred() / transferTask.getDataLoad());
+            }
+        } else {
             System.out.println("No tasks are currently being transferred.");
         }
 
-        for (Task transferTask : transferTasks) {
-            System.out.println("Task " + transferTask.getId() + " is being transferred");
-//            System.out.println("");//current data transferred / total data Load
-            System.out.println("Transfer Progress: Task " + transferTask.getId() + " is at " +
-                    transferTask.getDataTransferred() + "/" + transferTask.getDataLoad() +
-                    ". Current time: " + currentTime);
-        }
 
         System.out.println("---------------------------------------------------------");
     }

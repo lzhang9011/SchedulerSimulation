@@ -23,6 +23,8 @@ public class DatacenterGenerator {
         return datacenters;
     }
 
+
+
     public static void writeDatacentersToJson(List<Datacenter> datacenters) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (FileWriter writer = new FileWriter(FILE_NAME)) {

@@ -1,0 +1,4 @@
+task_id,original_arrival_time,eventual_arrival_time,cpu_required,transferred,actual_completion_timestamp,original_duration,actual_duration,data_transferred,data_load,transfer_completion_time, actual_waited_time
+0,1,1,4,false,6,5,5,0.00,2.50,0,0
+1,2,2,2,false,5,3,3,0.00,1.00,0,0
+2,4,6,8,true,10,4,6,5.00,5.00,1,1

@@ -8,7 +8,7 @@ public class JobSchedulerDemo {
         int i = 1;
         int[] steps = {60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20};
 
-        scheduler.runSimulation(2);
+        scheduler.runSimulation(1);
     }
 
 }
