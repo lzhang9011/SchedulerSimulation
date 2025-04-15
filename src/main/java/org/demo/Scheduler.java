@@ -9,6 +9,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -174,10 +175,18 @@ class Scheduler {
 
     public void tasksGenerate() {
         tasksEverExisted.clear();
-
         tasksEverExisted.add(new Task(0, 1, 5, 4, 2.5, maxWaitTimeCompute(5, 4)));
         tasksEverExisted.add(new Task(1, 2, 3, 2, 1.0, maxWaitTimeCompute(3,2)));
         tasksEverExisted.add(new Task(2, 4, 4, 8, 5.0, maxWaitTimeCompute(4, 8)));
+        tasksEverExisted.add(new Task(3, 5, 3, 10, 12.0, maxWaitTimeCompute(3, 16)));
+        tasksEverExisted.add(new Task(4, 6, 6, 6, 3.6, maxWaitTimeCompute(6, 6)));
+        tasksEverExisted.add(new Task(5, 7, 10, 3, 3.0, maxWaitTimeCompute(10, 3)));
+        tasksEverExisted.add(new Task(6, 9, 2, 4, 0.8, maxWaitTimeCompute(2, 4)));
+        tasksEverExisted.add(new Task(7, 15, 8, 5, 4.0, maxWaitTimeCompute(8, 5)));
+        tasksEverExisted.add(new Task(8, 16, 12, 7, 8.4, maxWaitTimeCompute(12, 7)));
+        tasksEverExisted.add(new Task(9, 25, 5, 10, 5.0, maxWaitTimeCompute(5, 10)));
+
+
     }
 
     public int maxWaitTimeCompute(int duration, int cpuRequirement) {
@@ -239,6 +248,8 @@ class Scheduler {
 
 
         while (localDatacenter.hasPendingTasks() || localDatacenter.hasUnfinishedTransfers() || remoteDatacenter.hasPendingTasks() || remoteDatacenter.hasUnfinishedTransfers()) {
+
+
             System.out.println("Current Time/Tick is: " + currentTime);
 
             List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
@@ -277,7 +288,26 @@ class Scheduler {
         milestoneTracker.writeToCSVFull("task_milestones.csv", factor);
 
 
-//        System.out.println("\nSimulation complete.");
+        System.out.println("\nSimulation complete.");
+
+        // compute and print system load:
+        int totalDemand = 0;
+        int totalPeriod = currentTime - 1;
+        int totalCPUs = localDatacenter.getTotalCPUs();
+
+        for (Task task : tasksEverExisted) {
+            totalDemand += task.getCpuRequirement() * task.getDuration();
+        }
+
+        System.out.println("total demand: " + totalDemand);
+        System.out.println("total period: " + totalPeriod);
+        System.out.println("total CPUs: " + totalCPUs);
+
+        double systemLoad = (double) totalDemand / (totalPeriod * totalCPUs);
+        System.out.printf("Current system load is: %.2f%n", systemLoad);
+
+
+
     }
 
 }

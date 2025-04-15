@@ -36,6 +36,16 @@ class Datacenter {
         return eventQueue;
     }
 
+    public Queue<Task> getWaitingQueue() {
+        return this.waitingQueue;
+    }
+
+    public Map<Task, Integer> getRunningTasks() {
+        return this.runningTasks;
+    }
+
+
+
     public boolean hasPendingTasks() {
 
         if (eventQueue.isEmpty() && runningTasks.isEmpty() && waitingQueue.isEmpty()) {
