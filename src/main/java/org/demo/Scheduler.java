@@ -21,7 +21,6 @@ class Scheduler {
 
     private final TaskMilestone milestoneTracker = new TaskMilestone();
     private int currentTime = 0;
-    private final double bandwidth = 10;
     private static final double MBperTick = 0.005;
 
     private final String baseTime = "2020-03-18 04:01:39"; // used to compute job's arrival time relative to the baseTime
@@ -59,145 +58,140 @@ class Scheduler {
         return datacenters;
     }
 
-//    public void load10TasksFromCSV(String inputFile, int factor) {
-//        File sourceFile = new File(inputFile);
-//
-//        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
-//            String headerLine = reader.readLine();
-//            if (headerLine == null) {
-//                System.out.println("CSV file is empty.");
-//                return;
-//            }
-//
-//            String[] headers = headerLine.split(",");
-//            int durationIdx = -1, gpuIdx = -1, cpuIdx = -1, submitTimeIdx = -1;
-//
-//            for (int i = 0; i < headers.length; i++) {
-//                switch (headers[i].trim()) {
-//                    case "duration": durationIdx = i; break;
-//                    case "gpu_num": gpuIdx = i; break;
-//                    case "cpu_num": cpuIdx = i; break;
-//                    case "submit_time": submitTimeIdx = i; break;
-//                }
-//            }
-//
-//            if (durationIdx == -1 || gpuIdx == -1 || cpuIdx == -1 || submitTimeIdx == -1) {
-//                System.out.println("One or more required columns are missing in the CSV file.");
-//                return;
-//            }
-//
-//            String dataLine;
-//            int entryCount = 0;
-//
-//            while ((dataLine = reader.readLine()) != null && entryCount < 10) {
-//                String[] values = dataLine.split(",");
-//                if (values.length <= Math.max(durationIdx, Math.max(gpuIdx, Math.max(cpuIdx, submitTimeIdx)))) {
-//                    System.out.println("Skipping malformed row: " + dataLine);
-//                    continue;
-//                }
-//
-//                int duration = Integer.parseInt(values[durationIdx].trim());
-//                int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
-//                double dataLoad = duration * resourceRequirement * MBperTick + (new Random().nextInt(10) + 1);
-//                LocalDateTime submitDateTime = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter);
-//                long submitEpoch = submitDateTime.toEpochSecond(ZoneOffset.UTC);
-//
-//                int arrivalTime = (int)((submitEpoch - baseEpochSeconds) / factor);
-//                Task task = new Task(entryCount++, arrivalTime, duration, resourceRequirement, dataLoad);                tasksEverExisted.add(task);
-//
-//            }
-//
-//            if (entryCount == 0) {
-//                System.out.println("No valid data entries found in " + inputFile);
-//            }
-//
-//        } catch (IOException e) {
-//            System.err.println("Error reading the file: " + e.getMessage());
-//        }
-//    }
-//
-//    public void loadTasksFromCSV(String inputFile, int interval) {
-//        File sourceFile = new File(inputFile);
-//
-//        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
-//            String headerLine = reader.readLine();
-//            if (headerLine == null) {
-//                System.out.println("CSV file is empty.");
-//                return;
-//            }
-//
-//            String[] headers = headerLine.split(",");
-//            int durationIdx = -1, gpuIdx = -1, cpuIdx = -1, submitTimeIdx = -1;
-//
-//            for (int i = 0; i < headers.length; i++) {
-//                switch (headers[i].trim()) {
-//                    case "duration": durationIdx = i; break;
-//                    case "gpu_num": gpuIdx = i; break;
-//                    case "cpu_num": cpuIdx = i; break;
-//                    case "submit_time": submitTimeIdx = i; break;
-//                }
-//            }
-//
-//            if (durationIdx == -1 || gpuIdx == -1 || cpuIdx == -1 || submitTimeIdx == -1) {
-//                System.out.println("One or more required columns are missing in the CSV file.");
-//                return;
-//            }
-//
-//            String dataLine;
-//            int entryCount = 0;
-//            int nextArrivalTime = 0;
-//
-//            while ((dataLine = reader.readLine()) != null) {
-//                String[] values = dataLine.split(",");
-//                if (values.length <= Math.max(durationIdx, Math.max(gpuIdx, Math.max(cpuIdx, submitTimeIdx)))) {
-//                    System.out.println("Skipping malformed row: " + dataLine);
-//                    continue;
-//                }
-//
-//                int duration = Integer.parseInt(values[durationIdx].trim());
-//                int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
-//                double dataLoad = duration * resourceRequirement * MBperTick + (new Random().nextInt(10) + 1);
-//
-//                Task task = new Task(entryCount++, nextArrivalTime, duration, resourceRequirement, dataLoad);
-//                tasksEverExisted.add(task);
-//
-//                nextArrivalTime += interval;
-//            }
-//
-//            if (entryCount == 0) {
-//                System.out.println("No valid data entries found in " + inputFile);
-//            }
-//
-//        } catch (IOException e) {
-//            System.err.println("Error reading the file: " + e.getMessage());
-//        }
-//    }
-
-    public void tasksGenerate() {
+    public void load10TasksFromCSV(String inputFile, double factor) {
         tasksEverExisted.clear();
-        tasksEverExisted.add(new Task(0, 1, 5, 4, 2.5, maxWaitTimeCompute(5, 4)));
-        tasksEverExisted.add(new Task(1, 2, 3, 2, 1.0, maxWaitTimeCompute(3,2)));
-        tasksEverExisted.add(new Task(2, 4, 4, 8, 5.0, maxWaitTimeCompute(4, 8)));
-        tasksEverExisted.add(new Task(3, 5, 3, 10, 12.0, maxWaitTimeCompute(3, 16)));
-        tasksEverExisted.add(new Task(4, 6, 6, 6, 3.6, maxWaitTimeCompute(6, 6)));
-        tasksEverExisted.add(new Task(5, 7, 10, 3, 3.0, maxWaitTimeCompute(10, 3)));
-        tasksEverExisted.add(new Task(6, 9, 2, 4, 0.8, maxWaitTimeCompute(2, 4)));
-        tasksEverExisted.add(new Task(7, 15, 8, 5, 4.0, maxWaitTimeCompute(8, 5)));
-        tasksEverExisted.add(new Task(8, 16, 12, 7, 8.4, maxWaitTimeCompute(12, 7)));
-        tasksEverExisted.add(new Task(9, 25, 5, 10, 5.0, maxWaitTimeCompute(5, 10)));
+        File sourceFile = new File(inputFile);
 
+        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
+            String headerLine = reader.readLine();
+            if (headerLine == null) {
+                System.out.println("CSV file is empty.");
+                return;
+            }
 
+            String[] headers = headerLine.split(",");
+            int durationIdx = -1, gpuIdx = -1, cpuIdx = -1, submitTimeIdx = -1;
+
+            for (int i = 0; i < headers.length; i++) {
+                switch (headers[i].trim()) {
+                    case "duration": durationIdx = i; break;
+                    case "gpu_num": gpuIdx = i; break;
+                    case "cpu_num": cpuIdx = i; break;
+                    case "submit_time": submitTimeIdx = i; break;
+                }
+            }
+
+            if (durationIdx == -1 || gpuIdx == -1 || cpuIdx == -1 || submitTimeIdx == -1) {
+                System.out.println("One or more required columns are missing in the CSV file.");
+                return;
+            }
+
+            String dataLine;
+            int entryCount = 0;
+            int lastArrival = 0;
+
+            int skipped = 0;
+
+            while ((dataLine = reader.readLine()) != null) {
+                if (skipped < 1) {
+                    skipped++;
+                    continue;
+                }
+
+                if (entryCount >= 40000) {
+                    break;
+                }
+
+                String[] values = dataLine.split(",");
+                if (values.length <= Math.max(durationIdx, Math.max(gpuIdx, Math.max(cpuIdx, submitTimeIdx)))) {
+                    System.out.println("Skipping malformed row: " + dataLine);
+                    continue;
+                }
+
+                int duration = Integer.parseInt(values[durationIdx].trim());
+                int resourceRequirement = Integer.parseInt(values[gpuIdx].trim()) + Integer.parseInt(values[cpuIdx].trim());
+
+                LocalDateTime submitDateTime = LocalDateTime.parse(values[submitTimeIdx].trim(), formatter);
+                long submitEpoch = submitDateTime.toEpochSecond(ZoneOffset.UTC);
+                int rawArrival = (int)(submitEpoch - baseEpochSeconds);
+                int scaledArrival = (int)Math.ceil(rawArrival / factor);
+
+                double dataLoad = dataLoadCompute(duration, resourceRequirement);
+                int maxWaitTime = maxWaitTimeCompute(duration, resourceRequirement);
+
+                Task task = new Task(entryCount++, scaledArrival, duration, resourceRequirement, dataLoad, maxWaitTime);
+                tasksEverExisted.add(task);
+            }
+
+            if (entryCount == 0) {
+                System.out.println("No valid data entries found in " + inputFile);
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error reading the file: " + e.getMessage());
+        }
     }
+
+//    public void tasksGenerate(double factor) {
+//        tasksEverExisted.clear();
+//
+//        int[] originalArrivals = {
+//                1, 2, 4, 10, 11, 12, 17, 30, 38, 47,
+//                55, 63, 70, 80, 90, 93, 97, 101, 106, 115
+//        };
+//
+//        // Durations and CPU requirements
+//        int[] durations = {
+//                8, 5, 6, 5, 8, 12, 4, 10, 14, 7,
+//                9, 6, 5, 11, 13, 8, 10, 7, 9, 6
+//        };
+//
+//        int[] cpus = {
+//                5, 3, 9, 10, 7, 4, 5, 6, 9, 11,
+//                6, 5, 8, 7, 10, 4, 8, 6, 7, 5
+//        };
+//
+//        // Slightly increased dataLoads, still loosely tied to duration * cpu
+//        double[] dataLoads = {
+//                3.0, 1.2, 6.0, 13.0, 4.2, 3.5, 1.0, 5.0, 9.0, 5.5,
+//                6.0, 3.2, 3.8, 7.0, 8.5, 4.5, 6.8, 4.2, 6.0, 3.3
+//        };
+//
+//        int lastArrival = 0;
+//
+//        for (int i = 0; i < originalArrivals.length; i++) {
+//            int arrival = (int)Math.ceil(originalArrivals[i] / factor);
+//            arrival = Math.max(arrival, lastArrival);
+//            lastArrival = arrival;
+//
+//            int duration = durations[i];
+//            int cpu = cpus[i];
+//            double data = dataLoads[i];
+//            int maxWaitTime = maxWaitTimeCompute(duration, cpu);
+//
+//            tasksEverExisted.add(new Task(i, arrival, duration, cpu, data, maxWaitTime));
+//        }
+//    }
+
+
+
+
 
     public int maxWaitTimeCompute(int duration, int cpuRequirement) {
-//        return duration * cpuRequirement;
-        return 0;
+//        return 0;
+        return (int)Math.round(0.125 * duration * cpuRequirement);
+//        return (int)(0.5 * duration * cpuRequirement);
+    }
+
+    public double dataLoadCompute(int duration, int cpuRequirement) {
+//        return 0.0;
+        return duration * cpuRequirement * MBperTick;
     }
 
 
 
 
-    public void runSimulation(int factor) {
+    public void runSimulation(double factor, double bandwidth) {
         // 0. clear previous simulation trace
         tasksEverExisted.clear();
         datacenters.clear();
@@ -210,24 +204,24 @@ class Scheduler {
         Datacenter localDatacenter = datacenters.get(0);
         Datacenter remoteDatacenter = datacenters.get(1);
 
-        //DEBUG
-        localDatacenter.setTotalCPUs(10);
-        FieldSetter.setField(localDatacenter, "availableCPUs", 10);
+//        //DEBUG
+//        localDatacenter.setTotalCPUs(10);
+//        FieldSetter.setField(localDatacenter, "availableCPUs", 10);
 
         // ✅2. load csv file to generate sample dataset.
 //        loadTasksFromCSV("cluster_log.csv", interval);
-//        load10TasksFromCSV("cluster_log.csv", factor);
+        load10TasksFromCSV("cluster_log.csv", factor);
 
         //DEBUG
-        tasksGenerate();
-
-        for (Task task : tasksEverExisted) {
-            System.out.println("Task " + task.getId() + " created with arrivalTime: " + task.getArrivalTime() +
-                    ", duration: " + task.getDuration() +
-                    ", cpuRequired: " + task.getCpuRequirement() +
-                    ", dataLoad: " + task.getDataLoad());
-//            localDatacenter.addTask(task);
-        }
+//        tasksGenerate(factor);
+//
+//        for (Task task : tasksEverExisted) {
+//            System.out.println("Task " + task.getId() + " created with arrivalTime: " + task.getArrivalTime() +
+//                    ", duration: " + task.getDuration() +
+//                    ", cpuRequired: " + task.getCpuRequirement() +
+//                    ", dataLoad: " + task.getDataLoad());
+////            localDatacenter.addTask(task);
+//        }
 
 
 
@@ -250,7 +244,7 @@ class Scheduler {
         while (localDatacenter.hasPendingTasks() || localDatacenter.hasUnfinishedTransfers() || remoteDatacenter.hasPendingTasks() || remoteDatacenter.hasUnfinishedTransfers()) {
 
 
-            System.out.println("Current Time/Tick is: " + currentTime);
+//            System.out.println("Current Time/Tick is: " + currentTime);
 
             List<Task> completedTransfers = localDatacenter.updateTransferProgress(currentTime, bandwidth);
             for (Task task : completedTransfers) {
@@ -266,11 +260,11 @@ class Scheduler {
              * */
             localDatacenter.handleTaskArrival(currentTime, milestoneTracker);
             localDatacenter.handleTaskCompletion(currentTime, milestoneTracker);
-            localDatacenter.printSystemStatus(currentTime, bandwidth);
+//            localDatacenter.printSystemStatus(currentTime, bandwidth);
 
             remoteDatacenter.handleTaskArrival(currentTime, milestoneTracker);
             remoteDatacenter.handleTaskCompletion(currentTime, milestoneTracker);
-            remoteDatacenter.printSystemStatus(currentTime, bandwidth);
+//            remoteDatacenter.printSystemStatus(currentTime, bandwidth);
 
             currentTime++;
         }
@@ -285,23 +279,25 @@ class Scheduler {
             }
         }
 
-        milestoneTracker.writeToCSVFull("task_milestones.csv", factor);
+        milestoneTracker.writeToCSVFull("task_milestones.csv", factor, bandwidth);
 
 
         System.out.println("\nSimulation complete.");
 
         // compute and print system load:
-        int totalDemand = 0;
-        int totalPeriod = currentTime - 1;
+        long totalDemand = 0;
+        long totalPeriod = currentTime - 1;
         int totalCPUs = localDatacenter.getTotalCPUs();
 
         for (Task task : tasksEverExisted) {
             totalDemand += task.getCpuRequirement() * task.getDuration();
         }
 
+
         System.out.println("total demand: " + totalDemand);
         System.out.println("total period: " + totalPeriod);
         System.out.println("total CPUs: " + totalCPUs);
+        System.out.println("running under bandwidth = " + bandwidth);
 
         double systemLoad = (double) totalDemand / (totalPeriod * totalCPUs);
         System.out.printf("Current system load is: %.2f%n", systemLoad);

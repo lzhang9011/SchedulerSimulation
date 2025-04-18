@@ -166,7 +166,7 @@ class Datacenter {
             int endTime = entry.getValue();
             Task task = entry.getKey();
             if (currentTime == endTime) {
-                System.out.println("✅ Task " + task.getId() + " completed at tick " + currentTime);
+//                System.out.println("✅ Task " + task.getId() + " completed at tick " + currentTime);
                 task.setCompletionTimeStamp(currentTime);
                 availableCPUs += task.getCpuRequirement();
                 completedTasks.add(task); // Store task for removal
@@ -202,7 +202,7 @@ class Datacenter {
             return;
         }
 
-        System.out.println("Task " + task.getId() + " is starting execution after waiting " + task.getCurrentWaitTime() + " ticks and the transferTime is " + task.getTransferCompletionTime());
+//        System.out.println("Task " + task.getId() + " is starting execution after waiting " + task.getCurrentWaitTime() + " ticks and the transferTime is " + task.getTransferCompletionTime());
 
         runningTasks.put(task, currentTime + task.getDuration());
         availableCPUs -= task.getCpuRequirement();
