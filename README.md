@@ -1,6 +1,6 @@
 # Hybrid Job Scheduler Simulator
 
-This project simulates a hybrid job scheduler that dynamically balances workloads between a local datacenter and a remote datacenter. 
+In my project, I explored and extended ideas from Starburst, a cost-aware scheduler designed for hybrid cloud environments.
 It models CPU-bound task scheduling, queue management, data-aware task transfers, and system load behavior based on real-world trace data.
 
 ## Features
@@ -39,3 +39,9 @@ JobSchedulerDemo.java: Entry point for running batch simulations.
 
 ### Post-Processing
 - Task milestone data is saved to a CSV file for offline analysis
+
+## How to Run in IntelliJ IDEA
+
+1. Open the project in IntelliJ IDEA.
+2. Navigate to `JobSchedulerDemo.java`.
+3. Click the green **Run** button (▶️).
