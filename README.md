@@ -45,3 +45,27 @@ JobSchedulerDemo.java: Entry point for running batch simulations.
 1. Open the project in IntelliJ IDEA.
 2. Navigate to `JobSchedulerDemo.java`.
 3. Click the green **Run** button (▶️).
+
+## Visualization
+
+A Python script (`plot.py`) is included to visualize key metrics from the simulation output.  
+Make sure `task_milestones_*.csv` files are generated first by running the simulator.
+
+To use:
+```bash
+python3 plot.py
+```
+## Configuration Note
+
+The Python script (`plot.py`) reads simulation output files from a directory defined in the code:
+
+```python
+# In plot.py
+base_dir = '/Users/lushazhang/Projects/SchedulerSimulation/'
+```
+you would need to change to your own directory for it to work. 
+
+
+
+
+
