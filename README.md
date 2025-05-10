@@ -14,8 +14,8 @@ It models CPU-bound task scheduling, queue management, data-aware task transfers
 
 ## Project Structure
 
-Datacenter.java: Handles task queues, scheduling, and transfer logic.
-Task.java: Defines task attributes and state transitions.
-Scheduler.java: Coordinates simulation workflow and task loading.
-TaskMilestone.java: Records and exports per-task milestone data
-JobSchedulerDemo.java: Entry point for running batch simulations
+Datacenter.java: Handles task queues, scheduling, and transfer logic.  
+Task.java: Defines task attributes and state transitions.  
+Scheduler.java: Coordinates simulation workflow and task loading.  
+TaskMilestone.java: Records and exports per-task milestone data.  
+JobSchedulerDemo.java: Entry point for running batch simulations.  
